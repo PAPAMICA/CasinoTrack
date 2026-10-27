@@ -1,0 +1,545 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		065F734F59191DD03FD2E624 /* CTMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21EA9C5D53C3B9BBEF0D2719 /* CTMotion.swift */; };
+		076506DC038BC48666F8B8DF /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE0F27E6DFCCEACD9CD8834 /* PhotoStore.swift */; };
+		32602CDD2FF1D8544C35F836 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8DA0B210F6D4E190ACDF77 /* HistoryView.swift */; };
+		3618BB03FE391D760DE0CCA1 /* StatsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50BC3C25282B2F4FD3108DD /* StatsEngine.swift */; };
+		44C877760AFDF08A0DE7E29E /* CatalogEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4914D55A1829E946F41D4388 /* CatalogEditors.swift */; };
+		60E7CB3C4378BCA9A3D8FB5A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0819A629BA5DEA28BA788395 /* Theme.swift */; };
+		7A9BACB60D11A2BD2266F8AC /* BonusGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C916A733FF190056E75EA041 /* BonusGalleryView.swift */; };
+		84170A50C37D5F31F19C76AE /* SessionEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596E9A1DF1E91E0DB02BEC68 /* SessionEditorSheet.swift */; };
+		8438683AD8EFBA21411D5277 /* DistributionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38606E64B02DE0E35AE5F4E /* DistributionBar.swift */; };
+		882BD8CA9924DFE0E87FD1EF /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2A946F0F73ABDCD1B9BF27 /* MoneyViews.swift */; };
+		88F0E57C364E29CAE3812DCF /* MoneyPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = F697F96803C834BE19A2C89B /* MoneyPad.swift */; };
+		8BAB07EA756D8BDF772CF737 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 972211DD770CC75C3130AD40 /* Assets.xcassets */; };
+		9055B061CF2B6AC2CCE50896 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EF854F82D1AE2E2D71B862 /* StatsView.swift */; };
+		A5D62C33F2D3629CAF0F1A60 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48FF3391B0B6514ED2EE32DC /* DateFormatting.swift */; };
+		A7DD5800F6460B38B2100E22 /* BonusEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A8576AECC13D7CD52E6B9D /* BonusEditorSheet.swift */; };
+		B7B73C386CEE986B867B65BB /* CasinoTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1BEB95DFA067A9083291A7 /* CasinoTrackApp.swift */; };
+		BB94378ECEF587106B688CA3 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33080D31946D06D4DE524127 /* RootTabView.swift */; };
+		BE1A63258114C695A76B353D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF97995B0402559A07F61DE6 /* Models.swift */; };
+		C6BB7B1367C97481F4455C12 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1273F83FA0F51C2745787E07 /* Localization.swift */; };
+		C878DF25F941A887E89B8978 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691A0D33E947B0A2DF1EAB6A /* CatalogView.swift */; };
+		C9043C1341A3CF712D99FE5F /* VisitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0983147E8DE88DABEBF93 /* VisitDetailView.swift */; };
+		CACD220E8D1408BB3ABEEDCC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F1B3B94BEC899C7C0E66378 /* SettingsView.swift */; };
+		E346822FC99E51A7E2B7050A /* SeedImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A2759FE4BCD2925E8634A6 /* SeedImporter.swift */; };
+		E3B9041C0AF415BF16418776 /* MoneyMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = E423E2FC4E0881F254F994F6 /* MoneyMath.swift */; };
+		EF350EDCD4B4A501B0D69EA6 /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9790420C5BFB968F63941450 /* CameraImagePicker.swift */; };
+		F1D18848D85C211A8645191F /* FloorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348D408E8741C9C6A1A4761B /* FloorView.swift */; };
+		F2560CA681D99DFC29DD20ED /* SeedData in Resources */ = {isa = PBXBuildFile; fileRef = D5B4FE39C7419D8B27E5B48A /* SeedData */; };
+		F2B1911C077B74035A26B6DC /* NewVisitSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA65BF866D75FA9901EA6EC1 /* NewVisitSheet.swift */; };
+		F70025E133CB0FB0BD25E788 /* VisitBudgetSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CE5690B573214AB1532ACD8 /* VisitBudgetSheet.swift */; };
+		F7950CEE26648F3CD03D049B /* CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E7DB78474CFAEF0C73A5C /* CloudSync.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0819A629BA5DEA28BA788395 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		0A8DA0B210F6D4E190ACDF77 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		1273F83FA0F51C2745787E07 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		1CE5690B573214AB1532ACD8 /* VisitBudgetSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitBudgetSheet.swift; sourceTree = "<group>"; };
+		21EA9C5D53C3B9BBEF0D2719 /* CTMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTMotion.swift; sourceTree = "<group>"; };
+		33080D31946D06D4DE524127 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		348D408E8741C9C6A1A4761B /* FloorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorView.swift; sourceTree = "<group>"; };
+		3F2A946F0F73ABDCD1B9BF27 /* MoneyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyViews.swift; sourceTree = "<group>"; };
+		48EF854F82D1AE2E2D71B862 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		48FF3391B0B6514ED2EE32DC /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
+		4914D55A1829E946F41D4388 /* CatalogEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogEditors.swift; sourceTree = "<group>"; };
+		4CE0F27E6DFCCEACD9CD8834 /* PhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStore.swift; sourceTree = "<group>"; };
+		596E9A1DF1E91E0DB02BEC68 /* SessionEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionEditorSheet.swift; sourceTree = "<group>"; };
+		691A0D33E947B0A2DF1EAB6A /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
+		7F1B3B94BEC899C7C0E66378 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		83A5D23903D7583B7B8611C9 /* CasinoTrack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CasinoTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94A8576AECC13D7CD52E6B9D /* BonusEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonusEditorSheet.swift; sourceTree = "<group>"; };
+		972211DD770CC75C3130AD40 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9790420C5BFB968F63941450 /* CameraImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImagePicker.swift; sourceTree = "<group>"; };
+		9E1BEB95DFA067A9083291A7 /* CasinoTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoTrackApp.swift; sourceTree = "<group>"; };
+		BB7E7DB78474CFAEF0C73A5C /* CloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSync.swift; sourceTree = "<group>"; };
+		C916A733FF190056E75EA041 /* BonusGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonusGalleryView.swift; sourceTree = "<group>"; };
+		D5B4FE39C7419D8B27E5B48A /* SeedData */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SeedData; path = CasinoTrack/Resources/SeedData; sourceTree = SOURCE_ROOT; };
+		DF97995B0402559A07F61DE6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		E38606E64B02DE0E35AE5F4E /* DistributionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistributionBar.swift; sourceTree = "<group>"; };
+		E423E2FC4E0881F254F994F6 /* MoneyMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyMath.swift; sourceTree = "<group>"; };
+		E981ECB893755AAB132CA96F /* CasinoTrack.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CasinoTrack.entitlements; sourceTree = "<group>"; };
+		EA65BF866D75FA9901EA6EC1 /* NewVisitSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewVisitSheet.swift; sourceTree = "<group>"; };
+		F4A2759FE4BCD2925E8634A6 /* SeedImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedImporter.swift; sourceTree = "<group>"; };
+		F50BC3C25282B2F4FD3108DD /* StatsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsEngine.swift; sourceTree = "<group>"; };
+		F5E0983147E8DE88DABEBF93 /* VisitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitDetailView.swift; sourceTree = "<group>"; };
+		F697F96803C834BE19A2C89B /* MoneyPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyPad.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		16AA8CB089145D589596DCC1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DF97995B0402559A07F61DE6 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		196D5D04EF69CE794AB4EBA1 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9E1BEB95DFA067A9083291A7 /* CasinoTrackApp.swift */,
+				33080D31946D06D4DE524127 /* RootTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		1EA4018C84A1E2F03EB43E12 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				9790420C5BFB968F63941450 /* CameraImagePicker.swift */,
+				E38606E64B02DE0E35AE5F4E /* DistributionBar.swift */,
+				F697F96803C834BE19A2C89B /* MoneyPad.swift */,
+				3F2A946F0F73ABDCD1B9BF27 /* MoneyViews.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		1FBA24335FF76F22608E1F26 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				0A8DA0B210F6D4E190ACDF77 /* HistoryView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		25CFA03FF5F7AD61CC806872 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D5B4FE39C7419D8B27E5B48A /* SeedData */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		2E5F216F4A548AA3A541AFCD /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BB7E7DB78474CFAEF0C73A5C /* CloudSync.swift */,
+				48FF3391B0B6514ED2EE32DC /* DateFormatting.swift */,
+				1273F83FA0F51C2745787E07 /* Localization.swift */,
+				E423E2FC4E0881F254F994F6 /* MoneyMath.swift */,
+				4CE0F27E6DFCCEACD9CD8834 /* PhotoStore.swift */,
+				F4A2759FE4BCD2925E8634A6 /* SeedImporter.swift */,
+				F50BC3C25282B2F4FD3108DD /* StatsEngine.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		4E232FAAD9E6957932F3F794 /* Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				4914D55A1829E946F41D4388 /* CatalogEditors.swift */,
+				691A0D33E947B0A2DF1EAB6A /* CatalogView.swift */,
+			);
+			path = Catalog;
+			sourceTree = "<group>";
+		};
+		5933F614ED0277A6DEFE963F /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				4E232FAAD9E6957932F3F794 /* Catalog */,
+				DC166E93F16F1F16A371E842 /* Floor */,
+				1FBA24335FF76F22608E1F26 /* History */,
+				E348A7E7B7D85BE76735F6A2 /* Settings */,
+				D022EAC044FC01692848E1E0 /* Stats */,
+				CA35BC0AB752DDD7751AD2F8 /* Visit */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		8372CFBEA1C973E873583C5C = {
+			isa = PBXGroup;
+			children = (
+				C7EB77B747CB8FF5E2B9D46C /* CasinoTrack */,
+				D0326A01815FDCD54C388304 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		979F261DA0597CDE15848986 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				21EA9C5D53C3B9BBEF0D2719 /* CTMotion.swift */,
+				0819A629BA5DEA28BA788395 /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		C7EB77B747CB8FF5E2B9D46C /* CasinoTrack */ = {
+			isa = PBXGroup;
+			children = (
+				972211DD770CC75C3130AD40 /* Assets.xcassets */,
+				E981ECB893755AAB132CA96F /* CasinoTrack.entitlements */,
+				196D5D04EF69CE794AB4EBA1 /* App */,
+				1EA4018C84A1E2F03EB43E12 /* Components */,
+				5933F614ED0277A6DEFE963F /* Features */,
+				16AA8CB089145D589596DCC1 /* Models */,
+				25CFA03FF5F7AD61CC806872 /* Resources */,
+				2E5F216F4A548AA3A541AFCD /* Services */,
+				979F261DA0597CDE15848986 /* Theme */,
+			);
+			path = CasinoTrack;
+			sourceTree = "<group>";
+		};
+		CA35BC0AB752DDD7751AD2F8 /* Visit */ = {
+			isa = PBXGroup;
+			children = (
+				94A8576AECC13D7CD52E6B9D /* BonusEditorSheet.swift */,
+				EA65BF866D75FA9901EA6EC1 /* NewVisitSheet.swift */,
+				596E9A1DF1E91E0DB02BEC68 /* SessionEditorSheet.swift */,
+				1CE5690B573214AB1532ACD8 /* VisitBudgetSheet.swift */,
+				F5E0983147E8DE88DABEBF93 /* VisitDetailView.swift */,
+			);
+			path = Visit;
+			sourceTree = "<group>";
+		};
+		D022EAC044FC01692848E1E0 /* Stats */ = {
+			isa = PBXGroup;
+			children = (
+				C916A733FF190056E75EA041 /* BonusGalleryView.swift */,
+				48EF854F82D1AE2E2D71B862 /* StatsView.swift */,
+			);
+			path = Stats;
+			sourceTree = "<group>";
+		};
+		D0326A01815FDCD54C388304 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				83A5D23903D7583B7B8611C9 /* CasinoTrack.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DC166E93F16F1F16A371E842 /* Floor */ = {
+			isa = PBXGroup;
+			children = (
+				348D408E8741C9C6A1A4761B /* FloorView.swift */,
+			);
+			path = Floor;
+			sourceTree = "<group>";
+		};
+		E348A7E7B7D85BE76735F6A2 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				7F1B3B94BEC899C7C0E66378 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A7A9C212F67181B7582A523E /* CasinoTrack */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C62402B8304BE99C2AE03700 /* Build configuration list for PBXNativeTarget "CasinoTrack" */;
+			buildPhases = (
+				FA8318207BDCA43A12F7F402 /* Sources */,
+				784AB28D2EA87D7B22732252 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CasinoTrack;
+			packageProductDependencies = (
+			);
+			productName = CasinoTrack;
+			productReference = 83A5D23903D7583B7B8611C9 /* CasinoTrack.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		06D6032938EAD37C56613AD1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A7A9C212F67181B7582A523E = {
+						DevelopmentTeam = 95Y6KBHV9L;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 4B3BEF78DC020111B23E6871 /* Build configuration list for PBXProject "CasinoTrack" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8372CFBEA1C973E873583C5C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D0326A01815FDCD54C388304 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A7A9C212F67181B7582A523E /* CasinoTrack */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		784AB28D2EA87D7B22732252 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8BAB07EA756D8BDF772CF737 /* Assets.xcassets in Resources */,
+				F2560CA681D99DFC29DD20ED /* SeedData in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FA8318207BDCA43A12F7F402 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A7DD5800F6460B38B2100E22 /* BonusEditorSheet.swift in Sources */,
+				7A9BACB60D11A2BD2266F8AC /* BonusGalleryView.swift in Sources */,
+				065F734F59191DD03FD2E624 /* CTMotion.swift in Sources */,
+				EF350EDCD4B4A501B0D69EA6 /* CameraImagePicker.swift in Sources */,
+				B7B73C386CEE986B867B65BB /* CasinoTrackApp.swift in Sources */,
+				44C877760AFDF08A0DE7E29E /* CatalogEditors.swift in Sources */,
+				C878DF25F941A887E89B8978 /* CatalogView.swift in Sources */,
+				F7950CEE26648F3CD03D049B /* CloudSync.swift in Sources */,
+				A5D62C33F2D3629CAF0F1A60 /* DateFormatting.swift in Sources */,
+				8438683AD8EFBA21411D5277 /* DistributionBar.swift in Sources */,
+				F1D18848D85C211A8645191F /* FloorView.swift in Sources */,
+				32602CDD2FF1D8544C35F836 /* HistoryView.swift in Sources */,
+				C6BB7B1367C97481F4455C12 /* Localization.swift in Sources */,
+				BE1A63258114C695A76B353D /* Models.swift in Sources */,
+				E3B9041C0AF415BF16418776 /* MoneyMath.swift in Sources */,
+				88F0E57C364E29CAE3812DCF /* MoneyPad.swift in Sources */,
+				882BD8CA9924DFE0E87FD1EF /* MoneyViews.swift in Sources */,
+				F2B1911C077B74035A26B6DC /* NewVisitSheet.swift in Sources */,
+				076506DC038BC48666F8B8DF /* PhotoStore.swift in Sources */,
+				BB94378ECEF587106B688CA3 /* RootTabView.swift in Sources */,
+				E346822FC99E51A7E2B7050A /* SeedImporter.swift in Sources */,
+				84170A50C37D5F31F19C76AE /* SessionEditorSheet.swift in Sources */,
+				CACD220E8D1408BB3ABEEDCC /* SettingsView.swift in Sources */,
+				3618BB03FE391D760DE0CCA1 /* StatsEngine.swift in Sources */,
+				9055B061CF2B6AC2CCE50896 /* StatsView.swift in Sources */,
+				60E7CB3C4378BCA9A3D8FB5A /* Theme.swift in Sources */,
+				F70025E133CB0FB0BD25E788 /* VisitBudgetSheet.swift in Sources */,
+				C9043C1341A3CF712D99FE5F /* VisitDetailView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4B4B97215E8E487AE8FF7D63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 95Y6KBHV9L;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CasinoTrack;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Photographier un bonus au casino.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Ajouter une photo de bonus hors ligne.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		4D2106EEDE080A40DFE7DC72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 95Y6KBHV9L;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CasinoTrack;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Photographier un bonus au casino.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Ajouter une photo de bonus hors ligne.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BA29ADA4E20998CC055C901F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CasinoTrack/CasinoTrack.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 18;
+				DEVELOPMENT_TEAM = 95Y6KBHV9L;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.papamica.casinotrack;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E045A5A863398528F44F8688 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CasinoTrack/CasinoTrack.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 18;
+				DEVELOPMENT_TEAM = 95Y6KBHV9L;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.papamica.casinotrack;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4B3BEF78DC020111B23E6871 /* Build configuration list for PBXProject "CasinoTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D2106EEDE080A40DFE7DC72 /* Debug */,
+				4B4B97215E8E487AE8FF7D63 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C62402B8304BE99C2AE03700 /* Build configuration list for PBXNativeTarget "CasinoTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA29ADA4E20998CC055C901F /* Debug */,
+				E045A5A863398528F44F8688 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 06D6032938EAD37C56613AD1 /* Project object */;
+}

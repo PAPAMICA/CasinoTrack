@@ -1,0 +1,42 @@
+name: CasinoTrack
+options:
+  bundleIdPrefix: net.papamica
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    TARGETED_DEVICE_FAMILY: "1"
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_CFBundleDisplayName: CasinoTrack
+    INFOPLIST_KEY_UIRequiresFullScreen: YES
+    INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Ajouter une photo de bonus hors ligne.
+    INFOPLIST_KEY_NSCameraUsageDescription: Photographier un bonus au casino.
+    DEVELOPMENT_TEAM: 95Y6KBHV9L
+    CODE_SIGN_STYLE: Automatic
+targets:
+  CasinoTrack:
+    type: application
+    platform: iOS
+    sources:
+      - path: CasinoTrack
+        excludes:
+          - Resources/SeedData/**
+      - path: CasinoTrack/Resources/SeedData
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.papamica.casinotrack
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "1.1.2"
+        CURRENT_PROJECT_VERSION: 18
+        DEVELOPMENT_TEAM: 95Y6KBHV9L
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: CasinoTrack/CasinoTrack.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    entitlements:
+      path: CasinoTrack/CasinoTrack.entitlements
