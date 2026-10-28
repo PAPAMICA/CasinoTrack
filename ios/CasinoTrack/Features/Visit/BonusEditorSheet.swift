@@ -85,7 +85,7 @@ struct BonusEditorSheet: View {
                 }
                 .padding()
             }
-            .ctScreen()
+            .ctSheetScreen()
             .navigationTitle(language.t.bonus)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

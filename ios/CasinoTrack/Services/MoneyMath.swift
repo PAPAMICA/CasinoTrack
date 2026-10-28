@@ -1,7 +1,49 @@
 import Foundation
 
+/// Sources d’alimentation de la **cagnotte** (et coûts de la sortie).
+/// - `cb` / `liquide` : argent de poche
+/// - `fromPrevious` : Budget importé des gains des sorties précédentes
+///
+/// Legacy rawValue `"gain"` → `fromPrevious` (ancien « Rejouer » visite).
 enum BudgetSource: String, Codable, CaseIterable, Identifiable {
-    case cb, liquide, gain
+    case cb
+    case liquide
+    case fromPrevious
+
+    var id: String { rawValue }
+
+    /// Cases affichées pour alimenter la cagnotte.
+    static var potFundingCases: [BudgetSource] { allCases }
+
+    static func parse(_ raw: String?) -> BudgetSource {
+        guard let raw else { return .liquide }
+        if raw == "gain" { return .fromPrevious }
+        return BudgetSource(rawValue: raw) ?? .liquide
+    }
+
+    var label: String {
+        let raw = UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.fr.rawValue
+        let t = L10n(AppLanguage(rawValue: raw) ?? .fr)
+        switch self {
+        case .cb: return t.sourceCB
+        case .liquide: return t.sourceCash
+        case .fromPrevious: return t.sourceBudget
+        }
+    }
+
+    var isCash: Bool { self == .cb || self == .liquide }
+
+    /// Compte dans CB / Liquide / Budget (coût de la sortie).
+    var countsAsVisitCost: Bool { true }
+}
+
+/// Source d’un topup machine.
+/// - `cb` / `liquide` : nouvel argent de poche (compte dans les coûts + alimente le jeu)
+/// - `cagnotte` : prélèvement interne (« Rejouer ») — hors CB/Liquide/Budget
+enum MachineFundingSource: String, CaseIterable, Identifiable {
+    case cb
+    case liquide
+    case cagnotte
 
     var id: String { rawValue }
 
@@ -11,14 +53,25 @@ enum BudgetSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .cb: return t.sourceCB
         case .liquide: return t.sourceCash
-        case .gain: return t.sourceReinvested
+        case .cagnotte: return t.sourcePot
         }
     }
 
-    var isCash: Bool { self == .cb || self == .liquide }
+    /// RawValue stocké dans `BudgetEntry.source`.
+    var budgetRawValue: String { rawValue }
+
+    var asBudgetSource: BudgetSource? {
+        switch self {
+        case .cb: return .cb
+        case .liquide: return .liquide
+        case .cagnotte: return nil
+        }
+    }
 }
 
 enum MoneyMath {
+    static let cagnotteSourceRaw = MachineFundingSource.cagnotte.rawValue
+
     static func toNumber(_ value: Any?) -> Double {
         switch value {
         case let d as Double: return d.isFinite ? d : 0
@@ -48,14 +101,31 @@ enum MoneyMath {
 
     static func cashExpense(cb: Double, liquide: Double) -> Double { cb + liquide }
 
-    /// Capital engagé = CB + Liquide + Réinvesti
-    static func totalBudget(cb: Double, liquide: Double, gain: Double) -> Double {
-        cb + liquide + gain
+    /// Coût sortie = CB + Liquide + Budget (précédent). Hors rejouer cagnotte→machine.
+    static func visitCostBasis(cb: Double, liquide: Double, fromPrevious: Double) -> Double {
+        cb + liquide + fromPrevious
     }
 
-    static func visitNet(gains: Double?, expense: Double, reinvested: Double) -> Double? {
+    /// Capital / cagnotte alimentée = CB + Liquide + Budget.
+    static func totalBudget(cb: Double, liquide: Double, fromPrevious: Double) -> Double {
+        cb + liquide + fromPrevious
+    }
+
+    /// Solde cagnotte = alimentations hors machine − prélèvements cagnotte + cash-outs
+    /// (+ topups CB/Liquide directs machine n’entrent pas dans la cagnotte tant qu’ils sont en jeu ;
+    ///   leurs cash-outs y reviennent).
+    static func cagnotteBalance(
+        potFunding: Double,
+        withdrawnFromPot: Double,
+        cashOuts: Double
+    ) -> Double {
+        potFunding - withdrawnFromPot + cashOuts
+    }
+
+    /// Net = Gains (solde / argent sortie) − CB − Liquide − Budget.
+    static func visitNet(gains: Double?, costBasis: Double) -> Double? {
         guard let gains else { return nil }
-        return gains - expense - reinvested
+        return gains - costBasis
     }
 
     static func multiplier(win: Double, bet: Double?) -> Double? {
@@ -63,17 +133,21 @@ enum MoneyMath {
         return win / bet
     }
 
-    /// × home / stats = gain net / dépensé (CB + Liquide, hors réinvesti)
+    /// × générique = net / spent (guard div/0).
     static func pocketMultiplier(net: Double, spent: Double) -> Double? {
         guard spent > 0, net.isFinite else { return nil }
         return net / spent
     }
 
-    /// × sortie (détail / historique) = gains / capital engagé (CB + Liquide + Réinvesti)
-    static func visitMultiplier(gains: Double?, cb: Double, liquide: Double, reinvested: Double) -> Double? {
-        guard let gains else { return nil }
-        let capital = totalBudget(cb: cb, liquide: liquide, gain: reinvested)
-        return multiplier(win: gains, bet: capital > 0 ? capital : nil)
+    /// × agrégé (home / stats) = net_total / (Σ CB + Σ Liquide). Budget exclu.
+    static func aggregatePocketMultiplier(net: Double, cashSpent: Double) -> Double? {
+        pocketMultiplier(net: net, spent: cashSpent)
+    }
+
+    /// × visite = net / (CB + Liquide + Budget) = net / costBasis.
+    static func visitMultiplier(net: Double?, costBasis: Double) -> Double? {
+        guard let net else { return nil }
+        return pocketMultiplier(net: net, spent: costBasis)
     }
 
     static func formatMultiplier(_ m: Double?) -> String {
@@ -92,7 +166,6 @@ enum MoneyMath {
         (cashOut ?? 0) - amountIn
     }
 
-    /// Σ cash-outs non nuls (encaissements machines d’une visite).
     static func visitGainsFromSessions(cashOuts: [Double?]) -> Double? {
         let outs = cashOuts.compactMap { $0 }
         guard !outs.isEmpty else { return nil }

@@ -78,6 +78,7 @@ struct L10n {
     var save: String { t("Enregistrer", "Save") }
     var edit: String { t("Modifier", "Edit") }
     var add: String { t("Ajouter", "Add") }
+    var withdraw: String { t("Retirer", "Withdraw") }
     var search: String { t("Rechercher", "Search") }
     var optional: String { t("Optionnel", "Optional") }
     var notes: String { t("Notes", "Notes") }
@@ -94,19 +95,28 @@ struct L10n {
     var budget: String { t("Budget", "Budget") }
     var gains: String { t("Gains", "Winnings") }
     var capital: String { t("Capital", "Capital") }
+    var pot: String { t("Cagnotte", "Pot") }
     var time: String { t("Temps", "Time") }
     var net: String { "NET" }
     var type: String { t("Type", "Type") }
     var validate: String { t("Valider", "Confirm") }
     var sourceCB: String { "CB" }
     var sourceCash: String { t("Liquide", "Cash") }
-    var sourceReinvested: String { t("Réinvesti", "Reinvested") }
-    var sourceReinvestedShort: String { t("Réinv.", "Reinv.") }
+    /// Import gains sorties précédentes (coût de la sortie).
+    var sourceBudget: String { t("Budget", "Budget") }
+    var sourceBudgetShort: String { t("Budget", "Budget") }
+    var sourceBudgetHint: String {
+        t("Gains des sorties précédentes", "Prior visit winnings")
+    }
+    /// Prélèvement cagnotte → machine (rejouer interne).
+    var sourcePot: String { t("Cagnotte", "Pot") }
+    var sourceReplay: String { t("Rejouer", "Replay") }
+    /// Compat aliases (UI / stats migrées).
+    var sourceReinvested: String { sourceBudget }
+    var sourceReinvestedShort: String { sourceBudgetShort }
     var budgetDash: String { t("Budget -", "Budget -") }
     var statusLive: String { t("En cours", "Live") }
     var statusDone: String { t("Terminée", "Done") }
-    var netFormula: String { t("Net = gains − poche − réinvesti", "Net = winnings − pocket − reinvested") }
-
     // MARK: - Settings
 
     var settingsTitle: String { t("Réglages", "Settings") }
@@ -155,7 +165,7 @@ struct L10n {
     var floorNetGain: String { t("Gain net", "Net profit") }
     var floorNetGainHint: String { t("Toutes sorties", "All visits") }
     var floorTotalMult: String { t("× total", "× total") }
-    var floorTotalMultHint: String { t("Net / dépensé", "Net / spent") }
+    var floorTotalMultHint: String { t("Net / dépensé (CB+Liquide)", "Net / spent (Card+Cash)") }
 
     // MARK: - History
 
@@ -227,18 +237,26 @@ struct L10n {
     var visitAddMachine: String { t("Ajouter une machine", "Add a machine") }
     var visitDelete: String { t("Supprimer la sortie", "Delete visit") }
     var visitDeleteA11y: String { t("Supprimer la sortie", "Delete visit") }
-    var visitTopup: String { t("Recharge", "Top-up") }
+    var visitTopup: String { t("Alimenter la cagnotte", "Fund the pot") }
     var visitClose: String { t("Clôturer", "Close out") }
     var visitReopen: String { t("Rouvrir", "Reopen") }
     var visitNoMachines: String { t("Aucune machine pour l’instant.", "No machines yet.") }
     var visitEditDurationA11y: String {
         t("Modifier la durée de la sortie", "Edit visit duration")
     }
-    var visitBudgetA11y: String { t("Gérer le budget de la sortie", "Manage visit budget") }
+    var visitBudgetA11y: String { t("Gérer la cagnotte de la sortie", "Manage visit pot") }
     var visitBudgetHint: String {
         t(
-            "Ouvre la liste des entrées CB, liquide et réinvesti",
-            "Opens the list of card, cash and reinvested entries"
+            "Ouvre les alimentations CB, liquide et budget",
+            "Opens card, cash and prior-budget funding"
+        )
+    }
+    var visitPotBalance: String { t("Cagnotte", "Pot") }
+    var visitFundPot: String { t("Alimenter la cagnotte", "Fund the pot") }
+    var visitFundPotHint: String {
+        t(
+            "CB, liquide ou budget des sorties précédentes",
+            "Card, cash or prior visit budget"
         )
     }
     var visitDeleteHint: String {
@@ -249,14 +267,18 @@ struct L10n {
     var visitFinish: String { t("Terminer la sortie", "End visit") }
     var visitUpdate: String { t("Mettre à jour", "Update") }
     var visitGainsRemaining: String {
-        t("Gains restants / total saisi", "Remaining winnings / entered total")
+        t(
+            "Argent en sortie (défaut = solde cagnotte)",
+            "Exit amount (default = pot balance)"
+        )
     }
 
     func visitMultiplierOnCapital(_ mult: String, _ capital: String) -> String {
-        t(
-            "\(mult) sur capital \(capital) · gains − poche − réinvesti",
-            "\(mult) on bankroll \(capital) · winnings − pocket − reinvested"
-        )
+        t("\(mult) sur capital \(capital)", "\(mult) on bankroll \(capital)")
+    }
+
+    func visitMultiplierOnSpent(_ mult: String, _ spent: String) -> String {
+        t("\(mult) sur dépensé \(spent)", "\(mult) on spent \(spent)")
     }
 
     func inOut(inAmount: String, outAmount: String?) -> String {
@@ -268,24 +290,26 @@ struct L10n {
 
     // MARK: - Budget
 
-    var budgetTitle: String { t("Budget sortie", "Visit budget") }
+    var budgetTitle: String { t("Cagnotte", "Pot") }
     var budgetTotals: String { t("Totaux", "Totals") }
-    var budgetEntries: String { t("Entrées", "Entries") }
-    var budgetEmpty: String { t("Aucune entrée budget.", "No budget entries.") }
+    var budgetEntries: String { t("Mouvements", "Movements") }
+    var budgetEmpty: String { t("Aucun mouvement.", "No movements.") }
     var budgetFooter: String {
         t(
-            "Tape une ligne pour modifier le montant ou la source. Les recharges liées à une machine sont retirées automatiquement si tu supprimes la session.",
-            "Tap a row to edit amount or source. Top-ups linked to a machine are removed automatically if you delete the session."
+            "Alimente d’abord la cagnotte (CB, liquide, budget). Les prélèvements cagnotte→machine (Rejouer) ne comptent pas dans les coûts. Les topups CB/Liquide liés à une machine sont retirés si tu supprimes la session.",
+            "Fund the pot first (card, cash, budget). Pot→machine withdrawals (Replay) are not costs. Card/cash machine top-ups are removed if you delete the session."
         )
     }
-    var budgetNewEntry: String { t("Nouvelle entrée", "New entry") }
+    var budgetNewEntry: String { t("Alimenter", "Fund") }
     var budgetEditEntry: String { t("Modifier", "Edit") }
     var budgetDeleteEntry: String { t("Supprimer cette entrée ?", "Delete this entry?") }
-    var budgetAddA11y: String { t("Ajouter une entrée", "Add an entry") }
-    var budgetInitial: String { t("Budget initial", "Initial budget") }
+    var budgetAddA11y: String { t("Alimenter la cagnotte", "Fund the pot") }
+    var budgetInitial: String { t("Alimentation initiale", "Initial funding") }
     var budgetLinkedMachine: String { t("Liée à une machine", "Linked to a machine") }
-    var budgetKindPlanned: String { t("Budget initial", "Initial budget") }
-    var budgetKindTopup: String { t("Recharge", "Top-up") }
+    var budgetKindPlanned: String { t("Alimentation", "Funding") }
+    var budgetKindTopup: String { t("Alimentation", "Funding") }
+    var budgetKindReplay: String { t("Rejouer", "Replay") }
+    var budgetWithdrawn: String { t("Vers machines", "To machines") }
 
     // MARK: - Session editor
 
@@ -306,16 +330,24 @@ struct L10n {
     var sessionDeleteTitle: String { t("Supprimer cette session ?", "Delete this session?") }
     var sessionDeleteMessage: String {
         t(
-            "Les recharges liées à cette machine seront aussi retirées du budget de la sortie.",
-            "Top-ups linked to this machine will also be removed from the visit budget."
+            "Les topups liés à cette machine seront aussi retirés de la cagnotte / du budget.",
+            "Top-ups linked to this machine will also be removed from the pot / budget."
         )
+    }
+    var sessionAddMoneyFromPot: String {
+        t("Depuis la cagnotte (rejouer)", "From pot (replay)")
+    }
+    var sessionAddMoneyExternal: String {
+        t("CB ou liquide (nouvelle mise)", "Card or cash (new stake)")
     }
     var sessionDuration: String { t("Durée", "Duration") }
     var sessionActions: String { t("Actions", "Actions") }
     var sessionAddBonus: String { t("Ajouter un bonus", "Add a bonus") }
     var sessionAddBonusSub: String { t("Bonus déclenché", "Triggered bonus") }
     var sessionAddMoney: String { t("Rajouter de l’argent", "Add more money") }
-    var sessionAddMoneySub: String { t("Ajouter à la machine", "Add to the machine") }
+    var sessionAddMoneySub: String {
+        t("CB, liquide ou cagnotte", "Card, cash or pot")
+    }
     var sessionLeaveMachine: String { t("Quitter la machine", "Leave machine") }
     var sessionLeaveMachineSub: String { t("Saisir le cash out", "Enter cash out") }
     var sessionMachineDetails: String { t("Machine, mise, notes", "Machine, bet, notes") }
@@ -377,8 +409,8 @@ struct L10n {
     var statsEmptyTitle: String { t("Pas encore de stats", "No stats yet") }
     var statsEmptySub: String {
         t(
-            "Tes sorties alimenteront bankroll, graphiques et classements.",
-            "Your visits will fill bankroll, charts and rankings."
+            "Tes sorties alimenteront stats, graphiques et classements.",
+            "Your visits will fill stats, charts and rankings."
         )
     }
     var statsBonusGalleryA11y: String { t("Galerie bonus", "Bonus gallery") }
@@ -387,8 +419,24 @@ struct L10n {
     var statsPeriodMonth: String { t("Mois", "Month") }
     var statsPeriodYear: String { t("Année", "Year") }
     var statsPeriodVisit: String { t("Sortie", "Visit") }
-    var statsBankroll: String { "Bankroll" }
+    /// Net agrégé des sorties (filtrées) — « Dispo en liquide ».
+    var statsBankroll: String { t("Banque", "Bank") }
     var statsBankrollSub: String {
+        t("Dispo en liquide", "Cash on hand")
+    }
+    var statsBankAdjustTitle: String { t("Ajuster la banque", "Adjust bank") }
+    var statsBankAdjustA11y: String { t("Ajuster la banque", "Adjust bank") }
+    var statsBankAdjustFooter: String {
+        t(
+            "Achats, ventes… hors casino — sans motif.",
+            "Purchases, sales… outside the casino — no reason needed."
+        )
+    }
+    func statsBankAdjustDetail(_ amount: String) -> String {
+        t("Ajustement manuel \(amount)", "Manual adjustment \(amount)")
+    }
+    var statsResults: String { t("Résultat des sorties", "Visit results") }
+    var statsResultsSub: String {
         t(
             "Argent sorti de la poche vs gains des sorties",
             "Money from your pocket vs visit winnings"
@@ -399,15 +447,12 @@ struct L10n {
         return t("\(count) · gain/perte net", "\(count) · net win/loss")
     }
     var statsSpent: String { t("Dépensé", "Spent") }
-    var statsSpentHint: String { t("CB + Liquide", "Card + Cash") }
-    var statsReinvested: String { t("Réinvesti", "Reinvested") }
-    var statsReinvestedHint: String { t("Gains remis", "Winnings put back") }
-    var statsGainsHint: String { t("Total encaissé", "Total cashed") }
+    var statsReinvested: String { t("Rejoué", "Replayed") }
     var statsPocketROI: String { t("× net / dépensé", "× net / spent") }
     var statsPocketROIHint: String { t("Gain net ÷ (CB + Liquide)", "Net ÷ (Card + Cash)") }
-    var statsReinvestRate: String { t("Taux réinvesti", "Reinvest rate") }
+    var statsReinvestRate: String { t("Part budget", "Budget share") }
     var statsReinvestRateHint: String {
-        t("Réinvesti ÷ (dépensé + réinv.)", "Reinvested ÷ (spent + reinv.)")
+        t("Budget ÷ (dépensé + budget)", "Budget ÷ (spent + budget)")
     }
     func statsBest(_ amount: String) -> String { t("Meilleure \(amount)", "Best \(amount)") }
     func statsWorst(_ amount: String) -> String { t("Pire \(amount)", "Worst \(amount)") }
@@ -445,7 +490,7 @@ struct L10n {
         )
     }
     var statsDistSpendSource: String { t("Dépensé : CB / Liquide", "Spent: Card / Cash") }
-    var statsDistCapital: String { t("Capital : poche / réinvesti", "Capital: pocket / reinvested") }
+    var statsDistCapital: String { t("Capital : poche / budget", "Capital: pocket / budget") }
     var statsDistVisitResults: String { t("Résultat des sorties (€)", "Visit results (€)") }
     var statsDistSessionCount: String { t("Sessions gagnantes / perdantes", "Winning / losing sessions") }
     var statsDistBonusTypes: String { t("Gains bonus par type", "Bonus wins by type") }
@@ -507,8 +552,8 @@ struct L10n {
             ? "\(visits) visite\(visits > 1 ? "s" : "")"
             : "\(visits) visit\(visits == 1 ? "" : "s")"
         return t(
-            "\(v) · dépensé \(spent) · réinvesti \(reinvested)",
-            "\(v) · spent \(spent) · reinvested \(reinvested)"
+            "\(v) · dépensé \(spent) · budget \(reinvested)",
+            "\(v) · spent \(spent) · budget \(reinvested)"
         )
     }
     func statsTimeLabel(_ duration: String) -> String {

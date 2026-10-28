@@ -23,9 +23,9 @@ struct FloorView: View {
         closedVisits.compactMap(\.net).reduce(0, +)
     }
 
-    /// × total = gain net / dépensé (CB + Liquide, hors réinvesti)
+    /// × total = net / (CB + Liquide) — Budget exclu.
     private var totalMultiplier: Double? {
-        MoneyMath.pocketMultiplier(net: totalNet, spent: totalSpent)
+        MoneyMath.aggregatePocketMultiplier(net: totalNet, cashSpent: totalSpent)
     }
 
     var body: some View {
@@ -135,7 +135,7 @@ struct FloorView: View {
                 title: t.floorSpent,
                 subtitle: t.floorSpentHint,
                 value: MoneyMath.formatEUR(totalSpent),
-                color: CTTheme.champagne,
+                color: CTTheme.lose,
                 index: 0
             )
             summaryTile(

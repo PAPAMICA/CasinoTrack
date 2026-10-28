@@ -2,8 +2,18 @@ import SwiftUI
 
 struct MoneyPad: View {
     @Binding var valueText: String
-    var presets: [Int] = [10, 20, 50, 100, 200]
+    /// Remplace le premier preset (10) — ex. dernier cash-out de la session.
+    var memorizedQuickAmount: Double? = nil
+    var presets: [Double] = [10, 20, 50, 100, 200]
     var onConfirm: (() -> Void)? = nil
+
+    private var resolvedPresets: [Double] {
+        var list = presets
+        if let memorized = memorizedQuickAmount, memorized > 0, !list.isEmpty {
+            list[0] = memorized
+        }
+        return list
+    }
 
     var body: some View {
         VStack(spacing: 14) {
@@ -11,17 +21,21 @@ struct MoneyPad: View {
                 .font(.system(size: 40, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(CTTheme.champagne)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
 
             HStack(spacing: 8) {
-                ForEach(presets, id: \.self) { p in
-                    Button("\(p)") { appendPreset(p) }
+                ForEach(Array(resolvedPresets.enumerated()), id: \.offset) { _, p in
+                    Button(presetLabel(p)) { appendPreset(p) }
                         .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
                         .background(CTTheme.felt.opacity(0.8))
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                 }
             }
 
@@ -70,18 +84,32 @@ struct MoneyPad: View {
         valueText += key
     }
 
-    private func appendPreset(_ p: Int) {
+    private func presetLabel(_ p: Double) -> String {
+        if abs(p - p.rounded()) < 0.001, abs(p) < 10_000 {
+            return "\(Int(p.rounded()))"
+        }
+        let formatted = String(format: "%.2f", p)
+            .replacingOccurrences(of: "\\.00$", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "(\\.[0-9])0$", with: "$1", options: .regularExpression)
+        return formatted
+    }
+
+    private func appendPreset(_ p: Double) {
         let current = MoneyMath.toNumber(valueText)
-        valueText = String(format: "%.2f", current + Double(p))
+        valueText = String(format: "%.2f", current + p)
     }
 }
 
-struct MoneyPadSheet: View {
+struct MoneyPadSheet<Source: Hashable & Identifiable>: View {
     let title: String
     @Binding var amount: Double
-    var sources: [BudgetSource]? = nil
-    @Binding var source: BudgetSource
+    var sources: [Source]? = nil
+    var sourceLabel: (Source) -> String = { _ in "" }
+    @Binding var source: Source
     var confirmTitle: String = "Valider"
+    /// Remplace le bouton rapide 10 € (dernier cash-out de la MachineSession).
+    var memorizedQuickAmount: Double? = nil
+    var footer: String? = nil
     var onConfirm: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
@@ -95,7 +123,7 @@ struct MoneyPadSheet: View {
                             Button {
                                 source = s
                             } label: {
-                                Text(s.label)
+                                Text(sourceLabel(s))
                                     .font(.subheadline.weight(.semibold))
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 44)
@@ -107,7 +135,13 @@ struct MoneyPadSheet: View {
                         }
                     }
                 }
-                MoneyPad(valueText: $text)
+                if let footer, !footer.isEmpty {
+                    Text(footer)
+                        .font(.caption)
+                        .foregroundStyle(CTTheme.muted)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                MoneyPad(valueText: $text, memorizedQuickAmount: memorizedQuickAmount)
                 PrimaryButton(title: confirmTitle) {
                     amount = MoneyMath.toNumber(text)
                     onConfirm()
@@ -115,7 +149,7 @@ struct MoneyPadSheet: View {
                 }
             }
             .padding()
-            .ctScreen()
+            .ctSheetScreen()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -127,6 +161,76 @@ struct MoneyPadSheet: View {
         .onAppear {
             text = amount > 0 ? String(format: "%.2f", amount) : ""
         }
+    }
+}
+
+extension MoneyPadSheet where Source == BudgetSource {
+    init(
+        title: String,
+        amount: Binding<Double>,
+        sources: [BudgetSource]?,
+        source: Binding<BudgetSource>,
+        confirmTitle: String = "Valider",
+        memorizedQuickAmount: Double? = nil,
+        footer: String? = nil,
+        onConfirm: @escaping () -> Void
+    ) {
+        self.title = title
+        self._amount = amount
+        self.sources = sources
+        self.sourceLabel = { $0.label }
+        self._source = source
+        self.confirmTitle = confirmTitle
+        self.memorizedQuickAmount = memorizedQuickAmount
+        self.footer = footer
+        self.onConfirm = onConfirm
+    }
+}
+
+extension MoneyPadSheet where Source == MachineFundingSource {
+    init(
+        title: String,
+        amount: Binding<Double>,
+        machineSources: [MachineFundingSource]?,
+        source: Binding<MachineFundingSource>,
+        confirmTitle: String = "Valider",
+        memorizedQuickAmount: Double? = nil,
+        footer: String? = nil,
+        onConfirm: @escaping () -> Void
+    ) {
+        self.title = title
+        self._amount = amount
+        self.sources = machineSources
+        self.sourceLabel = { $0.label }
+        self._source = source
+        self.confirmTitle = confirmTitle
+        self.memorizedQuickAmount = memorizedQuickAmount
+        self.footer = footer
+        self.onConfirm = onConfirm
+    }
+}
+
+/// Pad sans sélecteur de source (cash-out, montant absolu…).
+struct PlainMoneyPadSheet: View {
+    let title: String
+    @Binding var amount: Double
+    var confirmTitle: String = "Valider"
+    var memorizedQuickAmount: Double? = nil
+    var onConfirm: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var text = ""
+    @State private var dummySource = BudgetSource.liquide
+
+    var body: some View {
+        MoneyPadSheet(
+            title: title,
+            amount: $amount,
+            sources: nil as [BudgetSource]?,
+            source: $dummySource,
+            confirmTitle: confirmTitle,
+            memorizedQuickAmount: memorizedQuickAmount,
+            onConfirm: onConfirm
+        )
     }
 }
 
@@ -324,7 +428,7 @@ struct BetMoneyPadSheet: View {
                 BetPad(valueText: $text, preferredUnit: preferredUnit)
                     .padding()
             }
-            .ctScreen()
+            .ctSheetScreen()
             .safeAreaInset(edge: .bottom) {
                 PrimaryButton(title: confirmTitle) {
                     amount = MoneyMath.toNumber(text)
@@ -332,7 +436,7 @@ struct BetMoneyPadSheet: View {
                     dismiss()
                 }
                 .padding()
-                .background(CTTheme.bg.opacity(0.95))
+                .background(CTTheme.bg)
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)

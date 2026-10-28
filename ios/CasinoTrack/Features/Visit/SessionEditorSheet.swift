@@ -35,9 +35,19 @@ struct SessionEditorSheet: View {
     @State private var hubListEpoch = 0
 
     @State private var padAmount = 0.0
-    @State private var padSource: BudgetSource = .liquide
+    @State private var padFunding: MachineFundingSource = .cagnotte
+    @State private var padDummySource: BudgetSource = .liquide
+    /// Dernier cash-out de cette MachineSession → quick amount du pad topup.
+    @State private var lastCashOutAmount: Double?
 
     private var isEditing: Bool { activeSession != nil }
+
+    /// Montant proposé à la place de 10 € sur « Ajouter à la machine ».
+    private var topupMemorizedAmount: Double? {
+        if let last = lastCashOutAmount, last > 0 { return last }
+        if let out = cashOut, out > 0 { return out }
+        return nil
+    }
 
     private var preferredBetUnit: Double? {
         selected?.defaultBet
@@ -71,6 +81,7 @@ struct SessionEditorSheet: View {
                         onAddBonus: { showBonus = true },
                         onAddMoney: {
                             padAmount = 0
+                            padFunding = .cagnotte
                             showTopupPad = true
                         },
                         onCashOut: {
@@ -117,22 +128,12 @@ struct SessionEditorSheet: View {
                 MoneyPadSheet(
                     title: language.t.sessionAddToMachine,
                     amount: $padAmount,
-                    sources: BudgetSource.allCases,
-                    source: $padSource,
-                    confirmTitle: language.t.add
+                    machineSources: Array(MachineFundingSource.allCases),
+                    source: $padFunding,
+                    confirmTitle: language.t.add,
+                    memorizedQuickAmount: topupMemorizedAmount
                 ) {
-                    amountIn += padAmount
-                    if let session = activeSession {
-                        let entry = BudgetEntry(
-                            kind: "topup",
-                            amount: padAmount,
-                            source: padSource.rawValue,
-                            visit: session.visit ?? visit,
-                            linkedSession: session
-                        )
-                        context.insert(entry)
-                        persistAmountsIfEditing()
-                    }
+                    applyMachineTopup(padAmount, funding: padFunding)
                 }
             }
             .sheet(isPresented: $showCashOutPad, onDismiss: {
@@ -141,11 +142,14 @@ struct SessionEditorSheet: View {
                 MoneyPadSheet(
                     title: language.t.sessionCashOutTitle,
                     amount: $padAmount,
-                    sources: nil,
-                    source: $padSource,
+                    sources: nil as [BudgetSource]?,
+                    source: $padDummySource,
                     confirmTitle: language.t.sessionCashOutConfirm
                 ) {
                     cashOut = padAmount
+                    if padAmount > 0 {
+                        lastCashOutAmount = padAmount
+                    }
                     let leaving = isLeavingMachine
                     persistAmountsIfEditing(closingTiming: leaving)
                     isLeavingMachine = false
@@ -168,8 +172,8 @@ struct SessionEditorSheet: View {
                 MoneyPadSheet(
                     title: language.t.sessionAmountInTitle,
                     amount: $padAmount,
-                    sources: nil,
-                    source: $padSource
+                    sources: nil as [BudgetSource]?,
+                    source: $padDummySource
                 ) {
                     amountIn = padAmount
                     persistAmountsIfEditing()
@@ -377,6 +381,9 @@ struct SessionEditorSheet: View {
             betText = ""
         }
         cashOut = session.cashOut
+        if let out = session.cashOut, out > 0 {
+            lastCashOutAmount = out
+        }
         notes = session.notes ?? ""
     }
 
@@ -410,6 +417,7 @@ struct SessionEditorSheet: View {
             betText = ""
         }
         activeSession = s
+        lastCashOutAmount = nil
         scheduleOpenAddMoneyAfterCreate()
     }
 
@@ -419,8 +427,25 @@ struct SessionEditorSheet: View {
             try? await Task.sleep(for: .milliseconds(350))
             guard activeSession != nil else { return }
             padAmount = 0
+            padFunding = .cagnotte
             showTopupPad = true
         }
+    }
+
+    /// Topup machine : CB/Liquide (coût sortie) ou Cagnotte (rejouer interne).
+    private func applyMachineTopup(_ amount: Double, funding: MachineFundingSource) {
+        guard amount > 0 else { return }
+        amountIn += amount
+        guard let session = activeSession else { return }
+        let entry = BudgetEntry(
+            kind: "topup",
+            amount: amount,
+            source: funding.budgetRawValue,
+            visit: session.visit ?? visit,
+            linkedSession: session
+        )
+        context.insert(entry)
+        persistAmountsIfEditing()
     }
 
     private func persistAmountsIfEditing(closingTiming: Bool = false) {
@@ -430,14 +455,14 @@ struct SessionEditorSheet: View {
         if closingTiming {
             session.closeTiming()
         }
-        syncVisitGainsFromSessions(for: session)
+        syncVisitGains(for: session)
         try? context.save()
     }
 
-    /// Recalcule gains / net visite depuis les cash-outs dès qu’une session a un retrait.
-    private func syncVisitGainsFromSessions(for session: MachineSession? = nil) {
+    /// Recalcule gains / net visite depuis le solde cagnotte.
+    private func syncVisitGains(for session: MachineSession? = nil) {
         let target = session?.visit ?? activeSession?.visit ?? visit
-        target.syncGainsFromSessions()
+        target.syncGainsFromCagnotte()
     }
 
     private func deleteBonus(_ bonus: BonusEvent) {
@@ -465,11 +490,9 @@ struct SessionEditorSheet: View {
             )
         }
         let visitRef = session.visit ?? visit
-        let removedCashOut = session.cashOut != nil
         // Cascade : linkedBudgetEntries + bonuses
         context.delete(session)
-        if !visitRef.syncGainsFromSessions(), removedCashOut {
-            // Plus aucun retrait machine → retirer les gains synchronisés.
+        if !visitRef.hasCagnotteActivity {
             visitRef.manualTotalWin = nil
         }
         try? context.save()
@@ -508,7 +531,7 @@ struct SessionEditorSheet: View {
         if cashOut != nil, session.endedAt == nil {
             session.closeTiming()
         }
-        syncVisitGainsFromSessions(for: session)
+        syncVisitGains(for: session)
         try? context.save()
         dismiss()
     }
@@ -620,7 +643,7 @@ private struct EditSessionHub<Details: View>: View {
             }
             .padding()
         }
-        .ctScreen()
+        .ctSheetScreen()
     }
 
     private var summaryCard: some View {
@@ -791,5 +814,6 @@ struct DurationEditSheet: View {
         }
         .preferredColorScheme(.dark)
         .presentationDetents([.medium])
+        .presentationBackground(CTTheme.bg)
     }
 }

@@ -22,10 +22,14 @@ struct VisitBudgetSheet: View {
         NavigationStack {
             List {
                 Section {
-                    summaryRow(language.t.sourceCB, visit.budgetCB)
-                    summaryRow(language.t.sourceCash, visit.budgetLiquide)
-                    summaryRow(language.t.sourceReinvested, visit.reinvested)
-                    summaryRow(language.t.capital, visit.totalBudget, emphasize: true)
+                    summaryRow(language.t.visitPotBalance, visit.displayedCagnotteBalance, emphasize: true)
+                    summaryRow(language.t.sourceCB, visit.budgetCB, asExpense: true)
+                    summaryRow(language.t.sourceCash, visit.budgetLiquide, asExpense: true)
+                    summaryRow(language.t.sourceBudget, visit.budgetFromPrevious, asExpense: true)
+                    if visit.withdrawnFromPot > 0 {
+                        summaryRow(language.t.budgetWithdrawn, visit.withdrawnFromPot)
+                    }
+                    summaryRow(language.t.capital, visit.totalBudget, asExpense: true)
                 } header: {
                     Text(language.t.budgetTotals)
                 }
@@ -74,7 +78,7 @@ struct VisitBudgetSheet: View {
                 }
             }
             .sheet(isPresented: $showAdd) {
-                budgetPadSheet(title: language.t.budgetNewEntry, confirmTitle: language.t.add) {
+                budgetPadSheet(title: language.t.visitFundPot, confirmTitle: language.t.add) {
                     let entry = BudgetEntry(
                         kind: padKind,
                         amount: padAmount,
@@ -83,17 +87,23 @@ struct VisitBudgetSheet: View {
                     )
                     context.insert(entry)
                     syncPlannedBudgetIfNeeded()
+                    visit.syncGainsFromCagnotte()
                     try? context.save()
                 }
             }
             .sheet(item: $editingEntry) { entry in
                 budgetPadSheet(title: language.t.budgetEditEntry, confirmTitle: language.t.save) {
                     entry.amount = padAmount
-                    entry.source = padSource.rawValue
-                    if padKind == "planned" || entry.kind == "planned" {
-                        entry.kind = padKind
+                    if entry.isCagnotteWithdraw {
+                        entry.source = MoneyMath.cagnotteSourceRaw
+                    } else {
+                        entry.source = padSource.rawValue
+                        if padKind == "planned" || entry.kind == "planned" {
+                            entry.kind = padKind
+                        }
                     }
                     syncPlannedBudgetIfNeeded()
+                    visit.syncGainsFromCagnotte()
                     try? context.save()
                 }
             }
@@ -109,6 +119,7 @@ struct VisitBudgetSheet: View {
                     if let entry = entryPendingDelete {
                         context.delete(entry)
                         syncPlannedBudgetIfNeeded()
+                        visit.syncGainsFromCagnotte()
                         try? context.save()
                     }
                     entryPendingDelete = nil
@@ -121,15 +132,25 @@ struct VisitBudgetSheet: View {
         .preferredColorScheme(.dark)
     }
 
-    private func summaryRow(_ title: String, _ value: Double, emphasize: Bool = false) -> some View {
-        HStack {
+    private func summaryRow(
+        _ title: String,
+        _ value: Double,
+        emphasize: Bool = false,
+        asExpense: Bool = false
+    ) -> some View {
+        let amountColor: Color = {
+            if emphasize { return CTTheme.gold }
+            if asExpense, abs(value) > 0 { return CTTheme.lose }
+            return CTTheme.ink
+        }()
+        return HStack {
             Text(title)
                 .foregroundStyle(emphasize ? CTTheme.ink : CTTheme.muted)
                 .fontWeight(emphasize ? .semibold : .regular)
             Spacer()
             Text(MoneyMath.formatEUR(value))
                 .fontWeight(.semibold)
-                .foregroundStyle(emphasize ? CTTheme.gold : CTTheme.ink)
+                .foregroundStyle(amountColor)
                 .monospacedDigit()
         }
         .listRowBackground(CTTheme.bgElevated.opacity(0.85))
@@ -158,7 +179,7 @@ struct VisitBudgetSheet: View {
             Spacer(minLength: 8)
             Text(MoneyMath.formatEUR(entry.amount))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(CTTheme.gold)
+                .foregroundStyle(entry.isCagnotteWithdraw ? CTTheme.lose : CTTheme.gold)
                 .monospacedDigit()
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
@@ -176,14 +197,18 @@ struct VisitBudgetSheet: View {
 
     private func beginEdit(_ entry: BudgetEntry) {
         padAmount = entry.amount
-        padSource = BudgetSource(rawValue: entry.source) ?? .liquide
+        if entry.isCagnotteWithdraw {
+            padSource = .liquide
+        } else {
+            padSource = BudgetSource.parse(entry.source)
+        }
         padKind = entry.kind
         editingEntry = entry
     }
 
     private func syncPlannedBudgetIfNeeded() {
         let planned = visit.budgets
-            .filter { $0.kind == "planned" }
+            .filter { $0.kind == "planned" && !$0.isCagnotteWithdraw }
             .reduce(0.0) { $0 + $1.amount }
         visit.plannedBudget = planned
     }
@@ -194,29 +219,42 @@ struct VisitBudgetSheet: View {
         confirmTitle: String,
         onConfirm: @escaping () -> Void
     ) -> some View {
+        let editingCagnotte = editingEntry?.isCagnotteWithdraw == true
         NavigationStack {
             VStack(spacing: 16) {
-                Picker(language.t.type, selection: $padKind) {
-                    Text(language.t.budgetInitial).tag("planned")
-                    Text(language.t.visitTopup).tag("topup")
-                }
-                .pickerStyle(.segmented)
-
-                HStack(spacing: 8) {
-                    ForEach(BudgetSource.allCases) { s in
-                        Button {
-                            padSource = s
-                        } label: {
-                            Text(s.label)
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .background(padSource == s ? CTTheme.gold : CTTheme.felt.opacity(0.7))
-                                .foregroundStyle(padSource == s ? CTTheme.bg : CTTheme.ink)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
+                if !editingCagnotte {
+                    Picker(language.t.type, selection: $padKind) {
+                        Text(language.t.budgetInitial).tag("planned")
+                        Text(language.t.visitTopup).tag("topup")
                     }
+                    .pickerStyle(.segmented)
+
+                    HStack(spacing: 8) {
+                        ForEach(BudgetSource.potFundingCases) { s in
+                            Button {
+                                padSource = s
+                            } label: {
+                                Text(s.label)
+                                    .font(.subheadline.weight(.semibold))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .background(padSource == s ? CTTheme.gold : CTTheme.felt.opacity(0.7))
+                                    .foregroundStyle(padSource == s ? CTTheme.bg : CTTheme.ink)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    Text(language.t.visitFundPotHint)
+                        .font(.caption)
+                        .foregroundStyle(CTTheme.muted)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(language.t.sourceReplay)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(CTTheme.champagne)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 BudgetAmountPad(amount: $padAmount)
@@ -228,7 +266,7 @@ struct VisitBudgetSheet: View {
                 }
             }
             .padding()
-            .ctScreen()
+            .ctSheetScreen()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -28,16 +28,17 @@ private struct VisitDetailBody: View {
 
     @State private var showNewSession = false
     @State private var editingSession: MachineSession?
-    @State private var showTopup = false
+    @State private var showFundPot = false
     @State private var showClose = false
     @State private var showBudgetSheet = false
-    @State private var topupAmount = 50.0
-    @State private var topupSource: BudgetSource = .liquide
+    @State private var fundAmount = 50.0
+    @State private var fundSource: BudgetSource = .liquide
     @State private var closeAmount = 0.0
     @State private var lightbox: UIImage?
     @State private var showDurationEdit = false
     @State private var showDeleteConfirm = false
     @State private var contentAppeared = false
+    @State private var didPromptFundPot = false
 
     var body: some View {
         ScrollView {
@@ -52,8 +53,6 @@ private struct VisitDetailBody: View {
                     .ctStagger(contentAppeared, index: 3)
                 sessionsBlock
                     .ctStagger(contentAppeared, index: 4)
-                deleteBlock
-                    .ctStagger(contentAppeared, index: 5)
             }
             .padding()
         }
@@ -109,24 +108,34 @@ private struct VisitDetailBody: View {
             )
             .ctSheetChrome(detents: [.large])
         }
-        .sheet(isPresented: $showTopup) {
+        .sheet(isPresented: $showFundPot) {
             MoneyPadSheet(
-                title: language.t.visitTopup,
-                amount: $topupAmount,
-                sources: BudgetSource.allCases,
-                source: $topupSource,
-                confirmTitle: language.t.add
+                title: language.t.visitFundPot,
+                amount: $fundAmount,
+                sources: BudgetSource.potFundingCases,
+                source: $fundSource,
+                confirmTitle: language.t.add,
+                footer: language.t.visitFundPotHint
             ) {
                 let entry = BudgetEntry(
-                    kind: "topup",
-                    amount: topupAmount,
-                    source: topupSource.rawValue,
+                    kind: visit.budgets.isEmpty ? "planned" : "topup",
+                    amount: fundAmount,
+                    source: fundSource.rawValue,
                     visit: visit
                 )
                 context.insert(entry)
+                if entry.kind == "planned" {
+                    visit.plannedBudget = visit.budgets
+                        .filter { $0.kind == "planned" && !$0.isCagnotteWithdraw }
+                        .reduce(0) { $0 + $1.amount }
+                }
+                visit.syncGainsFromCagnotte()
                 try? context.save()
             }
             .ctSheetChrome()
+        }
+        .onAppear {
+            promptFundPotIfNeeded()
         }
         .sheet(isPresented: $showBudgetSheet) {
             VisitBudgetSheet(visit: visit)
@@ -173,14 +182,6 @@ private struct VisitDetailBody: View {
         return language.t.historyDeleteMessage
     }
 
-    private var deleteBlock: some View {
-        SecondaryButton(title: language.t.visitDelete, icon: "trash") {
-            showDeleteConfirm = true
-        }
-        .padding(.top, 8)
-        .accessibilityHint(language.t.visitDeleteHint)
-    }
-
     private func deleteVisit() {
         visit.deleteCascade(in: context)
         try? context.save()
@@ -216,59 +217,86 @@ private struct VisitDetailBody: View {
         }
     }
 
-    private var visitMultiplierSubtitle: String {
+    private var visitMultiplierSubtitle: String? {
         let mult = MoneyMath.formatMultiplier(visit.spendMultiplier)
-        if visit.totalBudget > 0 {
-            return language.t.visitMultiplierOnCapital(mult, MoneyMath.formatEUR(visit.totalBudget))
-        }
-        return language.t.netFormula
+        guard visit.costBasis > 0 else { return mult }
+        return language.t.visitMultiplierOnCapital(mult, MoneyMath.formatEUR(visit.costBasis))
     }
 
-    /// Une seule bande finance, cliquable pour gérer les entrées budget.
+    private func promptFundPotIfNeeded() {
+        guard visit.isLive, !didPromptFundPot else { return }
+        didPromptFundPot = true
+        let hasFunding = visit.budgets.contains { !$0.isCagnotteWithdraw }
+        if !hasFunding {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                fundAmount = 50
+                fundSource = .liquide
+                showFundPot = true
+            }
+        }
+    }
+
+    /// Bandeau cagnotte + sources, cliquable pour gérer les mouvements.
     private var financeStrip: some View {
         Button {
             showBudgetSheet = true
         } label: {
-            HStack(spacing: 12) {
-                metric(language.t.sourceCB, visit.budgetCB)
-                metric(language.t.sourceCash, visit.budgetLiquide)
-                metric(language.t.sourceReinvested, visit.reinvested)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(language.t.visitPotBalance)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(CTTheme.muted)
+                    Spacer()
+                    Text(MoneyMath.formatEUR(visit.displayedCagnotteBalance))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(CTTheme.gold)
+                        .monospacedDigit()
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(CTTheme.muted)
+                }
+                HStack(spacing: 12) {
+                    metric(language.t.sourceCB, visit.budgetCB, asExpense: true)
+                    metric(language.t.sourceCash, visit.budgetLiquide, asExpense: true)
+                    metric(language.t.sourceBudget, visit.budgetFromPrevious, asExpense: true)
+                }
             }
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: "pencil.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(CTTheme.muted)
-                    .padding(6)
-            }
+            .padding(12)
+            .background(CTTheme.bgElevated.opacity(0.85))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(CTCardPressStyle())
         .accessibilityLabel(language.t.visitBudgetA11y)
         .accessibilityHint(language.t.visitBudgetHint)
     }
 
-    private func metric(_ title: String, _ value: Double?) -> some View {
+    private func metric(_ title: String, _ value: Double?, asExpense: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(CTTheme.muted)
-            MoneyText(value: value)
-                .font(.subheadline.weight(.semibold))
+            Text(title).font(.caption2).foregroundStyle(CTTheme.muted)
+            MoneyText(value: value, asExpense: asExpense)
+                .font(.caption.weight(.semibold))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(CTTheme.bgElevated.opacity(0.85))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(8)
+        .background(CTTheme.felt.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var actionRow: some View {
         HStack(spacing: 10) {
             if visit.isLive {
-                SecondaryButton(title: language.t.visitTopup, icon: "plus.circle") { showTopup = true }
+                SecondaryButton(title: language.t.visitFundPot, icon: "tray.and.arrow.down.fill") {
+                    fundAmount = 50
+                    fundSource = .liquide
+                    showFundPot = true
+                }
                 SecondaryButton(title: language.t.visitClose, icon: "checkmark.circle") {
-                    closeAmount = visit.effectiveGains ?? 0
+                    closeAmount = visit.effectiveGains ?? visit.cagnotteBalance
                     showClose = true
                 }
             } else {
                 SecondaryButton(title: language.t.gains, icon: "pencil") {
-                    closeAmount = visit.effectiveGains ?? 0
+                    closeAmount = visit.effectiveGains ?? visit.cagnotteBalance
                     showClose = true
                 }
                 SecondaryButton(title: language.t.visitReopen, icon: "arrow.uturn.backward") {
@@ -392,7 +420,7 @@ struct CloseVisitSheet: View {
                 }
             }
             .padding()
-            .ctScreen()
+            .ctSheetScreen()
             .navigationTitle(language.t.gains)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

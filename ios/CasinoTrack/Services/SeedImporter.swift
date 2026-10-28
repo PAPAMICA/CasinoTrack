@@ -17,19 +17,257 @@ enum SeedImporter {
         if hasData {
             UserDefaults.standard.set(true, forKey: flagKey)
             ensureExtraBonusTypes(container: container)
+            migrateBudgetSources(container: container)
+            migrateOct27VisitFunding(container: container)
+            migrateOct27VisitExitGains(container: container)
+            migrateOct28VisitClose(container: container)
             return
         }
         if UserDefaults.standard.bool(forKey: flagKey) {
             ensureExtraBonusTypes(container: container)
+            migrateBudgetSources(container: container)
+            migrateOct27VisitFunding(container: container)
+            migrateOct27VisitExitGains(container: container)
+            migrateOct28VisitClose(container: container)
             return
         }
         do {
             try importSeed(into: context)
             try context.save()
             UserDefaults.standard.set(true, forKey: flagKey)
+            migrateBudgetSources(container: container)
+            migrateOct27VisitFunding(container: container)
+            migrateOct27VisitExitGains(container: container)
+            migrateOct28VisitClose(container: container)
         } catch {
             print("Seed import failed: \(error)")
         }
+    }
+
+    /// Normalise `gain` → `fromPrevious` sur les BudgetEntry existantes.
+    private static func migrateBudgetSources(container: ModelContainer) {
+        let key = "migrate.budgetSource.fromPrevious.v1"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        let context = ModelContext(container)
+        let entries = (try? context.fetch(FetchDescriptor<BudgetEntry>())) ?? []
+        var changed = false
+        for entry in entries where entry.source == "gain" {
+            entry.source = BudgetSource.fromPrevious.rawValue
+            changed = true
+        }
+        if changed { try? context.save() }
+        UserDefaults.standard.set(true, forKey: key)
+    }
+
+    /// Corrige la sortie du 27 oct (Europe/Paris) : Budget 400 + CB 200 (cagnotte 600).
+    private static func migrateOct27VisitFunding(container: ModelContainer) {
+        let key = "migrate.oct27.potFunding.v1"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        let context = ModelContext(container)
+        let visits = (try? context.fetch(FetchDescriptor<Visit>())) ?? []
+        let cal = CTDates.calendar
+        var comps = DateComponents()
+        comps.year = 2026
+        comps.month = 10
+        comps.day = 27
+        guard let dayStart = cal.date(from: comps),
+              let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else {
+            UserDefaults.standard.set(true, forKey: key)
+            return
+        }
+
+        let targets = visits.filter { $0.startedAt >= dayStart && $0.startedAt < dayEnd }
+        for visit in targets {
+            // Ne corriger que si l’ancienne forme « un seul gain/fromPrevious ~450 » est encore là,
+            // ou un seul planned sans CB 200.
+            let funding = visit.budgets.filter { !$0.isCagnotteWithdraw && $0.linkedSession == nil }
+            let hasCB200 = funding.contains {
+                BudgetSource.parse($0.source) == .cb && abs($0.amount - 200) < 0.01
+            }
+            let hasBudget400 = funding.contains {
+                BudgetSource.parse($0.source) == .fromPrevious && abs($0.amount - 400) < 0.01
+            }
+            if hasCB200 && hasBudget400 {
+                visit.plannedBudget = 600
+                continue
+            }
+
+            // Remplace les alimentations non liées par Budget 400 + CB 200.
+            for entry in funding {
+                context.delete(entry)
+            }
+            let at = visit.startedAt
+            context.insert(BudgetEntry(
+                kind: "planned",
+                amount: 400,
+                source: BudgetSource.fromPrevious.rawValue,
+                at: at,
+                note: "Budget (gains précédents)",
+                visit: visit
+            ))
+            context.insert(BudgetEntry(
+                kind: "planned",
+                amount: 200,
+                source: BudgetSource.cb.rawValue,
+                at: at,
+                note: "CB",
+                visit: visit
+            ))
+            visit.plannedBudget = 600
+            // Conserve manualTotalWin s’il existe ; sinon aligne sur cagnotte.
+            if visit.manualTotalWin == nil {
+                visit.syncGainsFromCagnotte()
+            }
+        }
+        try? context.save()
+        UserDefaults.standard.set(true, forKey: key)
+    }
+
+    /// Corrige les gains de sortie du 27 oct : argent sorti = 700 € (net 100).
+    /// Ne touche que si l’override manuel est encore à 1000 (ancienne erreur seed).
+    private static func migrateOct27VisitExitGains(container: ModelContainer) {
+        let key = "migrate.oct27.exitGains700.v1"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        let context = ModelContext(container)
+        let visits = (try? context.fetch(FetchDescriptor<Visit>())) ?? []
+        let cal = CTDates.calendar
+        var comps = DateComponents()
+        comps.year = 2026
+        comps.month = 10
+        comps.day = 27
+        guard let dayStart = cal.date(from: comps),
+              let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else {
+            UserDefaults.standard.set(true, forKey: key)
+            return
+        }
+
+        let targets = visits.filter { $0.startedAt >= dayStart && $0.startedAt < dayEnd }
+        for visit in targets {
+            if let win = visit.manualTotalWin, abs(win - 1000) < 0.01 {
+                visit.manualTotalWin = 700
+            }
+        }
+        try? context.save()
+        UserDefaults.standard.set(true, forKey: key)
+    }
+
+    /// Clôture la sortie Divonne 400+200 au **28 oct 2026** (calendrier user) :
+    /// CB 200, Budget 400, Liquide 0, cagnotte/gains 700, net +100.
+    private static func migrateOct28VisitClose(container: ModelContainer) {
+        let key = "migrate.oct28.close.v1"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        let context = ModelContext(container)
+        let visits = (try? context.fetch(FetchDescriptor<Visit>())) ?? []
+        let cal = CTDates.calendar
+
+        func dayBounds(_ day: Int) -> (Date, Date)? {
+            var comps = DateComponents()
+            comps.year = 2026
+            comps.month = 10
+            comps.day = day
+            guard let start = cal.date(from: comps),
+                  let end = cal.date(byAdding: .day, value: 1, to: start) else { return nil }
+            return (start, end)
+        }
+
+        guard let (d27s, d27e) = dayBounds(27),
+              let (d28s, d28e) = dayBounds(28) else {
+            UserDefaults.standard.set(true, forKey: key)
+            return
+        }
+
+        func potFunding(_ visit: Visit) -> [BudgetEntry] {
+            visit.budgets.filter { !$0.isCagnotteWithdraw && $0.linkedSession == nil }
+        }
+
+        func matchesScenario(_ visit: Visit) -> Bool {
+            let funding = potFunding(visit)
+            let hasCB200 = funding.contains {
+                BudgetSource.parse($0.source) == .cb && abs($0.amount - 200) < 0.01
+            }
+            let hasBudget400 = funding.contains {
+                BudgetSource.parse($0.source) == .fromPrevious && abs($0.amount - 400) < 0.01
+            }
+            if hasCB200 && hasBudget400 { return true }
+            let name = visit.casino?.name ?? ""
+            guard name.localizedCaseInsensitiveContains("Divonne") else { return false }
+            if abs(visit.plannedBudget - 600) < 0.01 { return true }
+            if let win = visit.manualTotalWin, abs(win - 700) < 0.01 || abs(win - 1000) < 0.01 {
+                return true
+            }
+            return false
+        }
+
+        let on27 = visits.filter { $0.startedAt >= d27s && $0.startedAt < d27e && matchesScenario($0) }
+        let on28 = visits.filter { $0.startedAt >= d28s && $0.startedAt < d28e && matchesScenario($0) }
+        // Deux sorties distinctes → fixer celle du 28 ; sinon décaler le 27 → 28.
+        let targets = on28.isEmpty ? on27 : on28
+        let dayDelta: TimeInterval = 24 * 3600
+
+        for visit in targets {
+            if visit.startedAt >= d27s && visit.startedAt < d27e {
+                visit.startedAt = visit.startedAt.addingTimeInterval(dayDelta)
+                if let ended = visit.endedAt {
+                    visit.endedAt = ended.addingTimeInterval(dayDelta)
+                }
+                for entry in visit.budgets {
+                    entry.at = entry.at.addingTimeInterval(dayDelta)
+                }
+                for session in visit.sessions {
+                    session.startedAt = session.startedAt.addingTimeInterval(dayDelta)
+                    if let ended = session.endedAt {
+                        session.endedAt = ended.addingTimeInterval(dayDelta)
+                    }
+                    for bonus in session.bonuses {
+                        bonus.at = bonus.at.addingTimeInterval(dayDelta)
+                    }
+                }
+            }
+
+            let funding = potFunding(visit)
+            let hasCB200 = funding.contains {
+                BudgetSource.parse($0.source) == .cb && abs($0.amount - 200) < 0.01
+            }
+            let hasBudget400 = funding.contains {
+                BudgetSource.parse($0.source) == .fromPrevious && abs($0.amount - 400) < 0.01
+            }
+            if hasCB200 && hasBudget400 {
+                for entry in funding where BudgetSource.parse(entry.source) == .liquide {
+                    context.delete(entry)
+                }
+            } else {
+                for entry in funding {
+                    context.delete(entry)
+                }
+                let at = visit.startedAt
+                context.insert(BudgetEntry(
+                    kind: "planned",
+                    amount: 400,
+                    source: BudgetSource.fromPrevious.rawValue,
+                    at: at,
+                    note: "Budget (gains précédents)",
+                    visit: visit
+                ))
+                context.insert(BudgetEntry(
+                    kind: "planned",
+                    amount: 200,
+                    source: BudgetSource.cb.rawValue,
+                    at: at,
+                    note: "CB",
+                    visit: visit
+                ))
+            }
+
+            visit.plannedBudget = 600
+            visit.manualTotalWin = 700
+            if visit.endedAt == nil {
+                let duration = max(visit.effectiveDuration, 1)
+                visit.endedAt = visit.startedAt.addingTimeInterval(duration)
+            }
+        }
+
+        try? context.save()
+        UserDefaults.standard.set(true, forKey: key)
     }
 
     private static func ensureExtraBonusTypes(container: ModelContainer) {
@@ -163,10 +401,16 @@ enum SeedImporter {
             context.insert(visit)
 
             for b in (row["budgets"] as? [[String: Any]]) ?? [] {
+                let rawSource = string(b["source"]) ?? "liquide"
+                let normalizedSource: String = {
+                    if rawSource == "gain" { return BudgetSource.fromPrevious.rawValue }
+                    if rawSource == MoneyMath.cagnotteSourceRaw { return rawSource }
+                    return BudgetSource.parse(rawSource).rawValue
+                }()
                 let entry = BudgetEntry(
                     kind: string(b["kind"]) ?? "planned",
                     amount: double(b["amount"]) ?? 0,
-                    source: string(b["source"]) ?? "liquide",
+                    source: normalizedSource,
                     at: date(b["at"]) ?? visit.startedAt,
                     note: string(b["note"]),
                     visit: visit

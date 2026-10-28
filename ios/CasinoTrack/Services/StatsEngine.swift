@@ -146,7 +146,7 @@ enum DistValueKind: Equatable {
 struct DistributionStats {
     /// Dépensé : CB vs Liquide.
     var spendBySource: [DistSlice]
-    /// Capital : Dépensé (poche) vs Réinvesti.
+    /// Capital : Dépensé (poche) vs Budget (précédent).
     var capitalFlow: [DistSlice]
     /// Résultat sorties (€) : Σ nets positifs vs |Σ nets négatifs|.
     var visitResults: [DistSlice]
@@ -325,8 +325,8 @@ enum StatsEngine {
             liquide: liquide,
             reinvested: reinvested,
             gains: gains,
-            // × global = gain net / dépensé (CB + Liquide, hors réinvesti)
-            pocketROI: MoneyMath.pocketMultiplier(net: netSum, spent: pocket),
+            // × global = net / (CB + Liquide) — Budget exclu
+            pocketROI: MoneyMath.aggregatePocketMultiplier(net: netSum, cashSpent: pocket),
             reinvestRate: denom > 0 ? reinvested / denom : nil,
             bestNet: best,
             worstNet: worst,

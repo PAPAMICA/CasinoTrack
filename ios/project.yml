@@ -32,7 +32,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: net.papamica.casinotrack
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.1.2"
-        CURRENT_PROJECT_VERSION: 18
+        CURRENT_PROJECT_VERSION: 27
         DEVELOPMENT_TEAM: 95Y6KBHV9L
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: CasinoTrack/CasinoTrack.entitlements

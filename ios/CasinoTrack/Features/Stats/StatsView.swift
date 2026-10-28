@@ -7,15 +7,22 @@ struct StatsView: View {
     @Query(sort: \Visit.startedAt, order: .reverse) private var visits: [Visit]
     @Query(sort: \Casino.name) private var casinos: [Casino]
     @Query(sort: \Machine.name) private var catalogMachines: [Machine]
+    @AppStorage("bankManualAdjustment") private var bankManualAdjustment = 0.0
     @State private var filter = StatsFilter()
     @State private var machineSort = 0
     @State private var showGallery = false
+    @State private var showBankAdjust = false
     @State private var sectionsAppeared = false
 
     private var t: L10n { language.t }
 
     private var snapshot: StatsSnapshot {
         StatsEngine.build(visits: visits, filter: filter)
+    }
+
+    /// Solde Banque affiché = net sorties (filtrées) + ajustement manuel global.
+    private var displayedBank: Double {
+        snapshot.bankroll.net + bankManualAdjustment
     }
 
     /// Machine catalogue pour une ligne de ranking (lien session, sinon match par nom).
@@ -34,24 +41,31 @@ struct StatsView: View {
         NavigationStack {
             Group {
                 if visits.isEmpty {
-                    CTEmptyState(
-                        title: t.statsEmptyTitle,
-                        subtitle: t.statsEmptySub,
-                        systemImage: "chart.line.uptrend.xyaxis"
-                    )
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 28) {
+                            bankSection(showMetrics: false)
+                            CTEmptyState(
+                                title: t.statsEmptyTitle,
+                                subtitle: t.statsEmptySub,
+                                systemImage: "chart.line.uptrend.xyaxis"
+                            )
+                        }
+                        .padding()
+                    }
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 28) {
                             filters
                                 .ctStagger(sectionsAppeared, index: 0)
 
+                            bankSection(showMetrics: hasFilteredData)
+                                .ctStagger(sectionsAppeared, index: 1)
+
                             if !hasFilteredData {
                                 filteredEmptyBlock
-                                    .ctStagger(sectionsAppeared, index: 1)
+                                    .ctStagger(sectionsAppeared, index: 2)
                             } else {
-                                // Vue d’ensemble → répartitions visuelles → tendances → temps → classements
-                                bankrollBlock
-                                    .ctStagger(sectionsAppeared, index: 1)
+                                // Répartitions → tendances → temps → classements
                                 distributionBlock
                                     .ctStagger(sectionsAppeared, index: 2)
                                 evolutionBlock
@@ -90,6 +104,10 @@ struct StatsView: View {
             }
             .navigationDestination(isPresented: $showGallery) {
                 BonusGalleryView()
+            }
+            .sheet(isPresented: $showBankAdjust) {
+                BankAdjustmentSheet(adjustment: $bankManualAdjustment)
+                    .ctSheetChrome(detents: [.large])
             }
             .onChange(of: filter) { _, _ in
                 withAnimation(CTMotion.appearFast) { sectionsAppeared = true }
@@ -155,86 +173,145 @@ struct StatsView: View {
         .buttonStyle(CTPressButtonStyle(pressedScale: 0.96))
     }
 
-    // MARK: - Bankroll
+    // MARK: - Banque (= net sorties + ajustement manuel)
 
-    private var bankrollBlock: some View {
+    @ViewBuilder
+    private func bankSection(showMetrics: Bool) -> some View {
         let b = snapshot.bankroll
-        return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(
-                language.t.statsBankroll,
-                subtitle: language.t.statsBankrollSub
-            )
-            NetHero(net: b.net, subtitle: language.t.statsNetSubtitle(b.visitsCount))
-
-            HStack(spacing: 10) {
-                mini(language.t.statsSpent, language.t.statsSpentHint, b.pocket)
-                mini(language.t.statsReinvested, language.t.statsReinvestedHint, b.reinvested)
-                mini(language.t.gains, language.t.statsGainsHint, b.gains)
-            }
-
-            HStack(spacing: 10) {
-                breakdownChip(title: language.t.sourceCB, value: b.cb, color: CTTheme.champagne)
-                breakdownChip(title: language.t.sourceCash, value: b.liquide, color: CTTheme.goldBright)
-            }
-
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(language.t.statsPocketROI)
-                        .font(.caption)
-                        .foregroundStyle(CTTheme.muted)
-                    Text(language.t.statsPocketROIHint)
-                        .font(.caption2)
-                        .foregroundStyle(CTTheme.muted.opacity(0.85))
-                    Text(b.pocketROI.map { MoneyMath.formatMultiplier($0) } ?? "-")
-                        .font(.title3.weight(.semibold))
+        let balance = displayedBank
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                sectionHeader(
+                    language.t.statsBankroll,
+                    subtitle: language.t.statsBankrollSub
+                )
+                Spacer(minLength: 8)
+                Button {
+                    showBankAdjust = true
+                } label: {
+                    Image(systemName: "plus.forwardslash.minus")
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(CTTheme.gold)
-                        .contentTransition(.numericText())
-                        .animation(CTMotion.snappy, value: b.pocketROI)
+                        .frame(width: 36, height: 36)
+                        .background(CTTheme.felt.opacity(0.55))
+                        .clipShape(Circle())
                 }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(language.t.statsReinvestRate)
-                        .font(.caption)
-                        .foregroundStyle(CTTheme.muted)
-                    Text(language.t.statsReinvestRateHint)
-                        .font(.caption2)
-                        .foregroundStyle(CTTheme.muted.opacity(0.85))
-                    Text(b.reinvestRate.map { "\(Int(($0 * 100).rounded())) %" } ?? "-")
-                        .font(.title3.weight(.semibold))
-                        .contentTransition(.numericText())
-                        .animation(CTMotion.snappy, value: b.reinvestRate)
-                }
+                .buttonStyle(CTPressButtonStyle(pressedScale: 0.92))
+                .accessibilityLabel(language.t.statsBankAdjustA11y)
             }
-            .padding()
-            .background(CTTheme.bgElevated.opacity(0.9))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            if let best = b.bestNet, let worst = b.worstNet {
+            Button {
+                showBankAdjust = true
+            } label: {
+                Text(MoneyMath.formatEUR(balance, withSign: true))
+                    .font(.system(size: 40, weight: .semibold, design: .serif))
+                    .foregroundStyle(balance > 0 ? CTTheme.win : (balance < 0 ? CTTheme.lose : CTTheme.champagne))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(CTTheme.bgElevated.opacity(0.9))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .contentTransition(.numericText())
+            .animation(CTMotion.snappy, value: balance)
+            .accessibilityLabel(language.t.statsBankroll)
+            .accessibilityValue(MoneyMath.formatEUR(balance, withSign: true))
+            .accessibilityHint(language.t.statsBankAdjustA11y)
+
+            if abs(bankManualAdjustment) > 0.000_1 {
+                Text(language.t.statsBankAdjustDetail(MoneyMath.formatEUR(bankManualAdjustment, withSign: true)))
+                    .font(.caption)
+                    .foregroundStyle(CTTheme.muted)
+            }
+
+            if showMetrics {
+                if b.visitsCount > 0 {
+                    Text(language.t.statsNetSubtitle(b.visitsCount))
+                        .font(.footnote)
+                        .foregroundStyle(CTTheme.muted)
+                }
+
+                HStack(spacing: 10) {
+                    mini(language.t.statsSpent, b.pocket, asExpense: true)
+                    mini(language.t.statsReinvested, b.reinvested, asExpense: true)
+                    mini(language.t.gains, b.gains)
+                }
+
+                HStack(spacing: 10) {
+                    breakdownChip(title: language.t.sourceCB, value: b.cb, color: CTTheme.lose)
+                    breakdownChip(title: language.t.sourceCash, value: b.liquide, color: CTTheme.lose)
+                }
+
                 HStack {
-                    Label {
-                        Text(language.t.statsBest(MoneyMath.formatEUR(best, withSign: true)))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(CTTheme.win)
-                    } icon: {
-                        Image(systemName: "arrow.up.right").foregroundStyle(CTTheme.win)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(language.t.statsPocketROI)
+                            .font(.caption)
+                            .foregroundStyle(CTTheme.muted)
+                        Text(language.t.statsPocketROIHint)
+                            .font(.caption2)
+                            .foregroundStyle(CTTheme.muted.opacity(0.85))
+                        Text(b.pocketROI.map { MoneyMath.formatMultiplier($0) } ?? "-")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(CTTheme.gold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .contentTransition(.numericText())
+                            .animation(CTMotion.snappy, value: b.pocketROI)
                     }
                     Spacer()
-                    Label {
-                        Text(language.t.statsWorst(MoneyMath.formatEUR(worst, withSign: true)))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(CTTheme.lose)
-                    } icon: {
-                        Image(systemName: "arrow.down.right").foregroundStyle(CTTheme.lose)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(language.t.statsReinvestRate)
+                            .font(.caption)
+                            .foregroundStyle(CTTheme.muted)
+                        Text(language.t.statsReinvestRateHint)
+                            .font(.caption2)
+                            .foregroundStyle(CTTheme.muted.opacity(0.85))
+                        Text(b.reinvestRate.map { "\(Int(($0 * 100).rounded())) %" } ?? "-")
+                            .font(.title3.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .contentTransition(.numericText())
+                            .animation(CTMotion.snappy, value: b.reinvestRate)
                     }
                 }
-            }
+                .padding()
+                .background(CTTheme.bgElevated.opacity(0.9))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            if snapshot.winStreak > 0 || snapshot.loseStreak > 0 {
-                Text(snapshot.winStreak > 0
-                     ? language.t.statsWinStreak(snapshot.winStreak)
-                     : language.t.statsLoseStreak(snapshot.loseStreak))
-                    .font(.subheadline)
-                    .foregroundStyle(snapshot.winStreak > 0 ? CTTheme.win : CTTheme.lose)
+                if let best = b.bestNet, let worst = b.worstNet {
+                    HStack {
+                        Label {
+                            Text(language.t.statsBest(MoneyMath.formatEUR(best, withSign: true)))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(CTTheme.win)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                        } icon: {
+                            Image(systemName: "arrow.up.right").foregroundStyle(CTTheme.win)
+                        }
+                        Spacer(minLength: 8)
+                        Label {
+                            Text(language.t.statsWorst(MoneyMath.formatEUR(worst, withSign: true)))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(CTTheme.lose)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                        } icon: {
+                            Image(systemName: "arrow.down.right").foregroundStyle(CTTheme.lose)
+                        }
+                    }
+                }
+
+                if snapshot.winStreak > 0 || snapshot.loseStreak > 0 {
+                    Text(snapshot.winStreak > 0
+                         ? language.t.statsWinStreak(snapshot.winStreak)
+                         : language.t.statsLoseStreak(snapshot.loseStreak))
+                        .font(.subheadline)
+                        .foregroundStyle(snapshot.winStreak > 0 ? CTTheme.win : CTTheme.lose)
+                }
             }
         }
     }
@@ -247,6 +324,8 @@ struct StatsView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(color)
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
@@ -254,11 +333,16 @@ struct StatsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private func mini(_ t: String, _ hint: String, _ v: Double) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(t).font(.caption.weight(.semibold)).foregroundStyle(CTTheme.muted)
-            Text(hint).font(.caption2).foregroundStyle(CTTheme.muted.opacity(0.85))
-            MoneyText(value: v).font(.subheadline.weight(.semibold))
+    private func mini(_ t: String, _ v: Double, asExpense: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(t)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(CTTheme.muted)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            MoneyText(value: v, asExpense: asExpense)
+                .font(.callout.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
@@ -548,7 +632,7 @@ struct StatsView: View {
         case "cb": return language.t.sourceCB
         case "liquide": return language.t.sourceCash
         case "pocket": return language.t.statsSpent
-        case "reinvested": return language.t.sourceReinvested
+        case "reinvested": return language.t.sourceBudget
         case "wins": return language.t.statsDistWins
         case "losses": return language.t.statsDistLosses
         case "autres": return language.t.statsDistOthers
@@ -834,5 +918,72 @@ struct StatsView: View {
                 .font(.caption)
                 .foregroundStyle(CTTheme.muted)
         }
+    }
+}
+
+// MARK: - Ajustement manuel Banque (+/− hors casino)
+
+private enum BankAdjustMode: Hashable {
+    case add, withdraw
+}
+
+struct BankAdjustmentSheet: View {
+    @Binding var adjustment: Double
+    @Environment(\.dismiss) private var dismiss
+    @Environment(LanguageStore.self) private var language
+    @State private var mode: BankAdjustMode = .add
+    @State private var text = ""
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                HStack(spacing: 8) {
+                    modeButton(language.t.add, .add)
+                    modeButton(language.t.withdraw, .withdraw)
+                }
+
+                Text(language.t.statsBankAdjustFooter)
+                    .font(.caption)
+                    .foregroundStyle(CTTheme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                MoneyPad(valueText: $text)
+
+                PrimaryButton(title: mode == .add ? language.t.add : language.t.withdraw) {
+                    let amount = MoneyMath.toNumber(text)
+                    guard amount > 0 else { return }
+                    if mode == .add {
+                        adjustment += amount
+                    } else {
+                        adjustment -= amount
+                    }
+                    dismiss()
+                }
+            }
+            .padding()
+            .ctSheetScreen()
+            .navigationTitle(language.t.statsBankAdjustTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(language.t.close) { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func modeButton(_ title: String, _ value: BankAdjustMode) -> some View {
+        Button {
+            mode = value
+        } label: {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(mode == value ? CTTheme.gold : CTTheme.felt.opacity(0.7))
+                .foregroundStyle(mode == value ? CTTheme.bg : CTTheme.ink)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 }

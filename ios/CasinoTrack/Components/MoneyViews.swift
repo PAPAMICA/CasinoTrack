@@ -4,12 +4,16 @@ struct MoneyText: View {
     let value: Double?
     var withSign: Bool = false
     var placeholder: String = "-"
+    /// Dépenses (CB / Liquide / Budget / Capital) : positif en rouge perte.
+    var asExpense: Bool = false
 
     var body: some View {
         if let value {
             Text(MoneyMath.formatEUR(value, withSign: withSign))
                 .foregroundStyle(color(for: value))
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
                 .ctNumericText(value: value)
         } else {
             Text(placeholder)
@@ -18,6 +22,9 @@ struct MoneyText: View {
     }
 
     private func color(for value: Double) -> Color {
+        if asExpense {
+            return abs(value) > 0 ? CTTheme.lose : CTTheme.ink
+        }
         if value > 0 { return CTTheme.win }
         if value < 0 { return CTTheme.lose }
         return CTTheme.ink
@@ -40,15 +47,19 @@ struct NetHero: View {
                     .font(.system(size: 44, weight: .semibold, design: .serif))
                     .foregroundStyle(net >= 0 ? CTTheme.win : CTTheme.lose)
                     .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
                     .ctNumericText(value: net)
             } else {
                 Text("-")
                     .font(.system(size: 44, weight: .semibold, design: .serif))
                     .foregroundStyle(CTTheme.muted)
             }
-            Text(subtitle ?? language.t.netFormula)
-                .font(.footnote)
-                .foregroundStyle(CTTheme.muted)
+            if let subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(CTTheme.muted)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -144,9 +155,9 @@ struct BudgetBreakdownRow: View {
     private var parts: [(String, Double, Color)] {
         let t = language.t
         return [
-            (t.sourceCB, cb, CTTheme.champagne),
-            (t.sourceCash, liquide, CTTheme.goldBright),
-            (t.sourceReinvestedShort, reinvested, CTTheme.feltSoft),
+            (t.sourceCB, cb, CTTheme.lose),
+            (t.sourceCash, liquide, CTTheme.lose),
+            (t.sourceBudgetShort, reinvested, CTTheme.lose),
         ].filter { $0.1 > 0 }
     }
 

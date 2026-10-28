@@ -2122,22 +2122,31 @@
     {
       "id": 3,
       "casino_id": 2,
-      "started_at": "2026-10-27T14:47:00.000Z",
-      "ended_at": "2026-10-27T17:08:24.580Z",
-      "planned_budget": "450.00",
-      "manual_total_win": "1000.00",
+      "started_at": "2026-10-28T14:47:00.000Z",
+      "ended_at": "2026-10-28T17:08:24.580Z",
+      "planned_budget": "600.00",
+      "manual_total_win": "700.00",
       "notes": null,
-      "created_at": "2026-10-27T15:47:53.421Z",
+      "created_at": "2026-10-28T15:47:53.421Z",
       "casino_name": "Casino Partouche Divonne",
       "budgets": [
         {
           "id": 3,
           "visit_id": 3,
           "kind": "planned",
-          "amount": "450.00",
-          "at": "2026-10-27T14:47:00.000Z",
-          "note": null,
-          "source": "gain"
+          "amount": "400.00",
+          "at": "2026-10-28T14:47:00.000Z",
+          "note": "Budget (gains précédents)",
+          "source": "fromPrevious"
+        },
+        {
+          "id": 31,
+          "visit_id": 3,
+          "kind": "planned",
+          "amount": "200.00",
+          "at": "2026-10-28T14:47:00.000Z",
+          "note": "CB",
+          "source": "cb"
         }
       ],
       "sessions": [
@@ -2149,7 +2158,7 @@
           "amount_in": "200.00",
           "bet_setting": "4.40",
           "cash_out": "98.70",
-          "started_at": "2026-10-27T15:48:18.650Z",
+          "started_at": "2026-10-28T15:48:18.650Z",
           "notes": null,
           "catalog_machine_id": 2,
           "machine_type_name": "Jackpot progressif",
@@ -2166,7 +2175,7 @@
           "amount_in": "148.70",
           "bet_setting": "2.50",
           "cash_out": "100.95",
-          "started_at": "2026-10-27T15:57:00.056Z",
+          "started_at": "2026-10-28T15:57:00.056Z",
           "notes": null,
           "catalog_machine_id": 65,
           "machine_type_name": "Jackpot progressif",
@@ -2196,7 +2205,7 @@
               "photo_path": "bonuses/16c99c5c-e510-4de8-9559-0be110ae513c.jpg",
               "photo_url": "/api/photos?path=bonuses%2F16c99c5c-e510-4de8-9559-0be110ae513c.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F16c99c5c-e510-4de8-9559-0be110ae513c.jpg&size=thumb",
-              "at": "2026-10-27T16:02:24.379Z"
+              "at": "2026-10-28T16:02:24.379Z"
             },
             {
               "id": 15,
@@ -2220,7 +2229,7 @@
               "photo_path": "bonuses/791889c9-43eb-402f-9386-aca937f2937a.jpg",
               "photo_url": "/api/photos?path=bonuses%2F791889c9-43eb-402f-9386-aca937f2937a.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F791889c9-43eb-402f-9386-aca937f2937a.jpg&size=thumb",
-              "at": "2026-10-27T16:03:48.427Z"
+              "at": "2026-10-28T16:03:48.427Z"
             }
           ]
         },
@@ -2232,7 +2241,7 @@
           "amount_in": "100.95",
           "bet_setting": "1.25",
           "cash_out": "200.00",
-          "started_at": "2026-10-27T16:05:55.535Z",
+          "started_at": "2026-10-28T16:05:55.535Z",
           "notes": null,
           "catalog_machine_id": 61,
           "machine_type_name": "Hold & Win",
@@ -2262,7 +2271,7 @@
               "photo_path": "bonuses/591d54dd-bcac-4041-8569-421504347f7a.jpg",
               "photo_url": "/api/photos?path=bonuses%2F591d54dd-bcac-4041-8569-421504347f7a.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F591d54dd-bcac-4041-8569-421504347f7a.jpg&size=thumb",
-              "at": "2026-10-27T16:07:14.627Z"
+              "at": "2026-10-28T16:07:14.627Z"
             }
           ]
         },
@@ -2274,7 +2283,7 @@
           "amount_in": "200.50",
           "bet_setting": "1.90",
           "cash_out": "250.00",
-          "started_at": "2026-10-27T16:12:09.410Z",
+          "started_at": "2026-10-28T16:12:09.410Z",
           "notes": null,
           "catalog_machine_id": 64,
           "machine_type_name": "Hold & Win",
@@ -2304,7 +2313,7 @@
               "photo_path": null,
               "photo_url": null,
               "thumb_url": null,
-              "at": "2026-10-27T16:17:44.091Z"
+              "at": "2026-10-28T16:17:44.091Z"
             },
             {
               "id": 18,
@@ -2328,7 +2337,7 @@
               "photo_path": null,
               "photo_url": null,
               "thumb_url": null,
-              "at": "2026-10-27T16:17:44.160Z"
+              "at": "2026-10-28T16:17:44.160Z"
             },
             {
               "id": 19,
@@ -2352,7 +2361,7 @@
               "photo_path": "bonuses/ec9b5bfd-7e11-40e3-8aa7-192dd08bac53.jpg",
               "photo_url": "/api/photos?path=bonuses%2Fec9b5bfd-7e11-40e3-8aa7-192dd08bac53.jpg",
               "thumb_url": "/api/photos?path=bonuses%2Fec9b5bfd-7e11-40e3-8aa7-192dd08bac53.jpg&size=thumb",
-              "at": "2026-10-27T16:18:16.374Z"
+              "at": "2026-10-28T16:18:16.374Z"
             }
           ]
         },
@@ -2364,7 +2373,7 @@
           "amount_in": "149.00",
           "bet_setting": "1.90",
           "cash_out": "550.00",
-          "started_at": "2026-10-27T16:21:12.990Z",
+          "started_at": "2026-10-28T16:21:12.990Z",
           "notes": null,
           "catalog_machine_id": 66,
           "machine_type_name": "Jackpot progressif",
@@ -2394,7 +2403,7 @@
               "photo_path": null,
               "photo_url": null,
               "thumb_url": null,
-              "at": "2026-10-27T16:31:07.453Z"
+              "at": "2026-10-28T16:31:07.453Z"
             },
             {
               "id": 21,
@@ -2424,7 +2433,7 @@
               "photo_path": "bonuses/f045dbfa-8dd9-4d7a-9772-d2b897cc76a2.jpg",
               "photo_url": "/api/photos?path=bonuses%2Ff045dbfa-8dd9-4d7a-9772-d2b897cc76a2.jpg",
               "thumb_url": "/api/photos?path=bonuses%2Ff045dbfa-8dd9-4d7a-9772-d2b897cc76a2.jpg&size=thumb",
-              "at": "2026-10-27T16:32:28.057Z"
+              "at": "2026-10-28T16:32:28.057Z"
             },
             {
               "id": 22,
@@ -2448,7 +2457,7 @@
               "photo_path": "bonuses/cb30f848-31d9-4e31-9072-3da6c96c6456.jpg",
               "photo_url": "/api/photos?path=bonuses%2Fcb30f848-31d9-4e31-9072-3da6c96c6456.jpg",
               "thumb_url": "/api/photos?path=bonuses%2Fcb30f848-31d9-4e31-9072-3da6c96c6456.jpg&size=thumb",
-              "at": "2026-10-27T16:35:12.099Z"
+              "at": "2026-10-28T16:35:12.099Z"
             },
             {
               "id": 23,
@@ -2472,7 +2481,7 @@
               "photo_path": "bonuses/2288325f-26c1-4155-abe2-98182f84772c.jpg",
               "photo_url": "/api/photos?path=bonuses%2F2288325f-26c1-4155-abe2-98182f84772c.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F2288325f-26c1-4155-abe2-98182f84772c.jpg&size=thumb",
-              "at": "2026-10-27T16:39:01.013Z"
+              "at": "2026-10-28T16:39:01.013Z"
             }
           ]
         },
@@ -2484,7 +2493,7 @@
           "amount_in": "200.00",
           "bet_setting": "9.40",
           "cash_out": "402.00",
-          "started_at": "2026-10-27T16:44:41.471Z",
+          "started_at": "2026-10-28T16:44:41.471Z",
           "notes": null,
           "catalog_machine_id": 2,
           "machine_type_name": "Jackpot progressif",
@@ -2520,7 +2529,7 @@
               "photo_path": "bonuses/566e51b3-5554-48f4-b64c-5414c1613522.jpg",
               "photo_url": "/api/photos?path=bonuses%2F566e51b3-5554-48f4-b64c-5414c1613522.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F566e51b3-5554-48f4-b64c-5414c1613522.jpg&size=thumb",
-              "at": "2026-10-27T16:44:42.103Z"
+              "at": "2026-10-28T16:44:42.103Z"
             }
           ]
         },
@@ -2532,7 +2541,7 @@
           "amount_in": "200.00",
           "bet_setting": "1.88",
           "cash_out": "400.20",
-          "started_at": "2026-10-27T16:52:16.633Z",
+          "started_at": "2026-10-28T16:52:16.633Z",
           "notes": null,
           "catalog_machine_id": 67,
           "machine_type_name": "Hold & Win",
@@ -2562,7 +2571,7 @@
               "photo_path": "bonuses/68fdf98d-a2ea-4734-a168-e42469be8330.jpg",
               "photo_url": "/api/photos?path=bonuses%2F68fdf98d-a2ea-4734-a168-e42469be8330.jpg",
               "thumb_url": "/api/photos?path=bonuses%2F68fdf98d-a2ea-4734-a168-e42469be8330.jpg&size=thumb",
-              "at": "2026-10-27T16:56:33.855Z"
+              "at": "2026-10-28T16:56:33.855Z"
             }
           ]
         },
@@ -2574,7 +2583,7 @@
           "amount_in": "103.00",
           "bet_setting": "3.52",
           "cash_out": null,
-          "started_at": "2026-10-27T16:58:33.071Z",
+          "started_at": "2026-10-28T16:58:33.071Z",
           "notes": null,
           "catalog_machine_id": 64,
           "machine_type_name": "Hold & Win",
@@ -2604,22 +2613,22 @@
               "photo_path": "bonuses/d2a57c33-0e1d-48f8-aadc-b9cb8e08a30f.jpg",
               "photo_url": "/api/photos?path=bonuses%2Fd2a57c33-0e1d-48f8-aadc-b9cb8e08a30f.jpg",
               "thumb_url": "/api/photos?path=bonuses%2Fd2a57c33-0e1d-48f8-aadc-b9cb8e08a30f.jpg&size=thumb",
-              "at": "2026-10-27T17:01:00.995Z"
+              "at": "2026-10-28T17:01:00.995Z"
             }
           ]
         }
       ],
       "topups_total": 0,
-      "expense": 0,
-      "reinvested": 450,
+      "expense": 200,
+      "reinvested": 400,
       "expense_by_source": {
-        "cb": 0,
-        "gain": 450,
+        "cb": 200,
+        "fromPrevious": 400,
         "liquide": 0
       },
-      "gains": 1000,
-      "net": 550,
-      "multiplier": null
+      "gains": 700,
+      "net": 100,
+      "multiplier": 0.5
     },
     {
       "id": 2,
@@ -2639,7 +2648,7 @@
           "amount": "950.00",
           "at": "2026-10-25T12:40:00.000Z",
           "note": null,
-          "source": "gain"
+          "source": "fromPrevious"
         }
       ],
       "sessions": [
@@ -2805,7 +2814,7 @@
       "reinvested": 950,
       "expense_by_source": {
         "cb": 0,
-        "gain": 950,
+        "fromPrevious": 950,
         "liquide": 0
       },
       "gains": 2200,
@@ -3080,7 +3089,7 @@
       "reinvested": 0,
       "expense_by_source": {
         "cb": 300,
-        "gain": 0,
+        "fromPrevious": 0,
         "liquide": 0
       },
       "gains": 950,

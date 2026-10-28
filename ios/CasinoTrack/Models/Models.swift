@@ -201,10 +201,12 @@ final class Visit {
         }
     }
 
+    /// Entrées qui comptent comme coût / alimentation (hors prélèvement cagnotte→machine).
     var expenseBySource: [BudgetSource: Double] {
-        var totals: [BudgetSource: Double] = [.cb: 0, .liquide: 0, .gain: 0]
+        var totals: [BudgetSource: Double] = [.cb: 0, .liquide: 0, .fromPrevious: 0]
         for b in budgets {
-            let src = BudgetSource(rawValue: b.source) ?? .liquide
+            guard b.source != MoneyMath.cagnotteSourceRaw else { continue }
+            let src = BudgetSource.parse(b.source)
             totals[src, default: 0] += b.amount
         }
         return totals
@@ -215,50 +217,108 @@ final class Visit {
         return MoneyMath.cashExpense(cb: e[.cb] ?? 0, liquide: e[.liquide] ?? 0)
     }
 
-    var reinvested: Double { expenseBySource[.gain] ?? 0 }
+    /// Budget = imports depuis sorties précédentes (pas le rejouer interne).
+    var budgetFromPrevious: Double { expenseBySource[.fromPrevious] ?? 0 }
+
+    /// Alias historique UI / stats (`reinvested` → Budget précédent).
+    var reinvested: Double { budgetFromPrevious }
 
     var budgetCB: Double { expenseBySource[.cb] ?? 0 }
     var budgetLiquide: Double { expenseBySource[.liquide] ?? 0 }
 
-    /// Capital engagé = CB + Liquide + Réinvesti
-    var totalBudget: Double {
-        MoneyMath.totalBudget(cb: budgetCB, liquide: budgetLiquide, gain: reinvested)
+    /// Coût sortie pour le net : CB + Liquide + Budget.
+    var costBasis: Double {
+        MoneyMath.visitCostBasis(cb: budgetCB, liquide: budgetLiquide, fromPrevious: budgetFromPrevious)
     }
 
-    /// Σ cash-outs des sessions (retraits enregistrés). `nil` si aucun retrait.
+    /// Capital alimenté (CB + Liquide + Budget) — info UI.
+    var totalBudget: Double {
+        MoneyMath.totalBudget(cb: budgetCB, liquide: budgetLiquide, fromPrevious: budgetFromPrevious)
+    }
+
+    /// Alimentations cagnotte uniquement (hors topups CB/Liquide liés à une machine).
+    var potFundingTotal: Double {
+        budgets
+            .filter { entry in
+                !entry.isCagnotteWithdraw
+                    && entry.linkedSession == nil
+                    && BudgetSource.parse(entry.source).countsAsVisitCost
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    /// Topups machine payés CB/Liquide (hors cagnotte).
+    var machineExternalTopups: Double {
+        budgets
+            .filter { $0.linkedSession != nil && !$0.isCagnotteWithdraw }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    /// Prélèvements cagnotte → machine : Σ amountIn − topups CB/Liquide liés.
+    /// (Les entrées `source=cagnotte` sont l’audit ; `amountIn` fait foi, y compris legacy.)
+    var withdrawnFromPot: Double {
+        let totalIn = sessions.reduce(0.0) { $0 + $1.amountIn }
+        return max(0, totalIn - machineExternalTopups)
+    }
+
+    /// Σ cash-outs des sessions (retraits enregistrés).
+    var sessionCashOutSum: Double {
+        sessions.compactMap(\.cashOut).reduce(0, +)
+    }
+
+    /// Σ cash-outs. `nil` si aucun retrait.
     var sessionCashOutTotal: Double? {
         MoneyMath.visitGainsFromSessions(cashOuts: sessions.map(\.cashOut))
     }
 
-    /// Gains pour net / × : saisie / sync session (`manualTotalWin`), sinon somme des cash-outs.
-    var effectiveGains: Double? {
-        manualTotalWin ?? sessionCashOutTotal
-    }
-
-    var net: Double? {
-        MoneyMath.visitNet(gains: effectiveGains, expense: cashExpense, reinvested: reinvested)
-    }
-
-    /// × = gains / capital engagé (prend CB, Liquide et Réinvesti)
-    var spendMultiplier: Double? {
-        MoneyMath.visitMultiplier(
-            gains: effectiveGains,
-            cb: budgetCB,
-            liquide: budgetLiquide,
-            reinvested: reinvested
+    /// Solde courant de la cagnotte de la sortie (ledger sessions).
+    var cagnotteBalance: Double {
+        MoneyMath.cagnotteBalance(
+            potFunding: potFundingTotal,
+            withdrawnFromPot: withdrawnFromPot,
+            cashOuts: sessionCashOutSum
         )
     }
 
-    /// Aligne `manualTotalWin` sur la somme des cash-outs (persistance, stats, sheet Gains).
-    @discardableResult
-    func syncGainsFromSessions() -> Bool {
-        guard let total = sessionCashOutTotal else { return false }
-        if manualTotalWin != total {
-            manualTotalWin = total
-            return true
+    /// Cagnotte affichée : si sortie close, priorise les gains effectifs (évite un ledger ~1300 vs 700).
+    var displayedCagnotteBalance: Double {
+        if !isLive, let gains = effectiveGains {
+            return gains
         }
-        return false
+        return cagnotteBalance
     }
+
+    var hasCagnotteActivity: Bool {
+        !budgets.isEmpty || sessions.contains { $0.amountIn > 0 || $0.cashOut != nil }
+    }
+
+    /// Gains / argent sortie : override manuel, sinon solde cagnotte.
+    var effectiveGains: Double? {
+        if let manualTotalWin { return manualTotalWin }
+        guard hasCagnotteActivity else { return nil }
+        return cagnotteBalance
+    }
+
+    /// Net = argent_sortie − CB − Liquide − Budget. Rejouer interne exclu.
+    var net: Double? {
+        MoneyMath.visitNet(gains: effectiveGains, costBasis: costBasis)
+    }
+
+    /// × = net / (CB + Liquide + Budget) = net / costBasis.
+    var spendMultiplier: Double? {
+        MoneyMath.visitMultiplier(net: net, costBasis: costBasis)
+    }
+
+    /// Les gains suivent le solde cagnotte tant que `manualTotalWin` est nil.
+    /// Un override manuel (clôture / édition Gains) est conservé.
+    @discardableResult
+    func syncGainsFromCagnotte() -> Bool {
+        hasCagnotteActivity
+    }
+
+    /// Compat : ancien nom — sync depuis cagnotte.
+    @discardableResult
+    func syncGainsFromSessions() -> Bool { syncGainsFromCagnotte() }
 
     /// Suppression fiable : enfants d’abord (évite le double-cascade `BudgetEntry`
     /// lié à la fois à la visite et à une session).
@@ -312,13 +372,19 @@ final class BudgetEntry {
         self.linkedSession = linkedSession
     }
 
+    var isCagnotteWithdraw: Bool { source == MoneyMath.cagnotteSourceRaw }
+
     var sourceLabel: String {
-        (BudgetSource(rawValue: source) ?? .liquide).label
+        if isCagnotteWithdraw {
+            return MachineFundingSource.cagnotte.label
+        }
+        return BudgetSource.parse(source).label
     }
 
     @MainActor
     var kindLabel: String {
         let t = LanguageStore.shared.t
+        if isCagnotteWithdraw { return t.budgetKindReplay }
         switch kind {
         case "planned": return t.budgetKindPlanned
         case "topup": return t.budgetKindTopup

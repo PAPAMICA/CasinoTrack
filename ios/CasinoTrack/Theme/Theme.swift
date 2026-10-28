@@ -37,30 +37,46 @@ extension Color {
 }
 
 struct FeltBackground: View {
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: false)) { context in
-            let t = context.date.timeIntervalSinceReferenceDate
-            // Soft breathe: gold wash + felt depth, very subtle (~6s cycle).
-            let goldPulse = 0.10 + 0.04 * (0.5 + 0.5 * sin(t * (.pi * 2 / 6.0)))
-            let feltPulse = 0.30 + 0.08 * (0.5 + 0.5 * sin(t * (.pi * 2 / 7.5) + 1.2))
+    /// Animation légère (écrans principaux). Désactivée sur les sheets pour un fond opaque stable.
+    var animated: Bool = true
 
-            ZStack {
-                CTTheme.bg
-                RadialGradient(
-                    colors: [CTTheme.gold.opacity(goldPulse), .clear],
-                    center: .top,
-                    startRadius: 20,
-                    endRadius: 420
-                )
-                RadialGradient(
-                    colors: [CTTheme.felt.opacity(feltPulse), .clear],
-                    center: .bottomLeading,
-                    startRadius: 10,
-                    endRadius: 360
-                )
+    var body: some View {
+        Group {
+            if animated {
+                TimelineView(.animation(minimumInterval: 1 / 30, paused: false)) { context in
+                    layers(at: context.date.timeIntervalSinceReferenceDate)
+                }
+            } else {
+                layers(at: 0)
             }
         }
         .ignoresSafeArea()
+    }
+
+    private func layers(at t: TimeInterval) -> some View {
+        // Soft breathe: gold wash + felt depth, very subtle (~6s cycle).
+        let goldPulse = animated
+            ? 0.10 + 0.04 * (0.5 + 0.5 * sin(t * (.pi * 2 / 6.0)))
+            : 0.12
+        let feltPulse = animated
+            ? 0.30 + 0.08 * (0.5 + 0.5 * sin(t * (.pi * 2 / 7.5) + 1.2))
+            : 0.34
+
+        return ZStack {
+            CTTheme.bg
+            RadialGradient(
+                colors: [CTTheme.gold.opacity(goldPulse), .clear],
+                center: .top,
+                startRadius: 20,
+                endRadius: 420
+            )
+            RadialGradient(
+                colors: [CTTheme.felt.opacity(feltPulse), .clear],
+                center: .bottomLeading,
+                startRadius: 10,
+                endRadius: 360
+            )
+        }
     }
 }
 
@@ -69,5 +85,13 @@ extension View {
         self
             .background(FeltBackground())
             .foregroundStyle(CTTheme.ink)
+    }
+
+    /// Fond opaque pour contenus présentés en sheet (évite le bleed / z-order du material système).
+    func ctSheetScreen() -> some View {
+        self
+            .background(FeltBackground(animated: false))
+            .foregroundStyle(CTTheme.ink)
+            .presentationBackground(CTTheme.bg)
     }
 }

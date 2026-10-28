@@ -88,13 +88,14 @@ extension View {
             .animation(CTMotion.snappy, value: value)
     }
 
-    /// Chrome sheet cohérent (detents + poignée).
+    /// Chrome sheet cohérent (detents + poignée + fond opaque).
     func ctSheetChrome(
         detents: Set<PresentationDetent> = [.medium, .large]
     ) -> some View {
         self
             .presentationDetents(detents)
             .presentationDragIndicator(.visible)
+            .presentationBackground(CTTheme.bg)
     }
 
     /// Déclenche un flag d’apparition une fois (stagger / empty).
